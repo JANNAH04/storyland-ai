@@ -1,0 +1,370 @@
+
+<!doctype html>
+<html lang="ms">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>Storyland AI | Dunia Cerita Ajaib</title>
+
+  <link rel="preconnect"
+        href="https://fonts.googleapis.com">
+  <link rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <header class="navbar">
+    <div class="brand">
+      <span class="brand-icon">📚</span>
+      <span>Storyland <b>AI</b></span>
+    </div>
+
+    <div class="nav-label">
+      ✨ Studio Cerita Ajaib
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-cloud cloud-left">☁️</div>
+    <div class="hero-cloud cloud-right">☁️</div>
+
+    <div class="hero-inner">
+      <div class="hero-badge">
+        🌟 CIPTA BUKU CERITA DENGAN AI
+      </div>
+
+      <h1>
+        Selamat Datang ke
+        <span>Dunia Cerita Ajaib!</span>
+      </h1>
+
+      <p>
+        Jadikan imaginasi anda sebuah buku cerita
+        yang penuh keajaiban!
+      </p>
+
+      <div class="fantasy-world" aria-hidden="true">
+        <span class="rainbow">🌈</span>
+        <span class="castle">🏰</span>
+        <span class="unicorn">🦄</span>
+        <span class="dragon">🐉</span>
+        <span class="sparkle">✨</span>
+      </div>
+    </div>
+  </section>
+
+  <main>
+
+    <section class="panel">
+      <div class="section-heading">
+        <span class="heading-icon">🪄</span>
+
+        <div>
+          <div class="eyebrow">LANGKAH PERTAMA</div>
+          <h2>Jom Cipta Cerita!</h2>
+        </div>
+      </div>
+
+      <p class="section-intro">
+        Masukkan idea dan biarkan Gemini
+        membantu menulis cerita anda.
+      </p>
+
+      <form id="create">
+
+        <label>
+          🌟 Tajuk Buku Cerita
+          <input
+            name="title"
+            maxlength="120"
+            placeholder="Contoh: Siti dan Kucing Ajaib"
+            required
+          >
+        </label>
+
+        <label>
+          💭 Idea Cerita
+          <textarea
+            name="idea"
+            rows="4"
+            minlength="12"
+            maxlength="2000"
+            placeholder="Tulis idea pengembaraan anda..."
+            required
+          ></textarea>
+        </label>
+
+        <div class="three">
+
+          <label>
+            🧒 Umur
+            <select name="age">
+              <option value="3-5">3–5 tahun</option>
+              <option value="6-8" selected>6–8 tahun</option>
+              <option value="9-12">9–12 tahun</option>
+            </select>
+          </label>
+
+          <label>
+            🌍 Bahasa
+            <select name="language">
+              <option>Bahasa Melayu</option>
+              <option>English</option>
+            </select>
+          </label>
+
+          
+<label for="pageCount">
+  📖 Bilangan Muka Surat
+</label>
+
+<select id="pageCount" name="pageCount" required>
+  <option value="6">6 Muka Surat</option>
+  <option value="8">8 Muka Surat</option>
+  <option value="10">10 Muka Surat</option>
+  <option value="12">12 Muka Surat</option>
+  <option value="16">16 Muka Surat</option>
+  <option value="20" selected>20 Muka Surat</option>
+  <option value="24">24 Muka Surat</option>
+  <option value="30">30 Muka Surat</option>
+  <option value="40">40 Muka Surat</option>
+  <option value="50">50 Muka Surat</option>
+</select>
+
+          </label>
+
+        </div>
+
+        <button id="generate" type="submit">
+          ✨ Jana Cerita dengan Gemini
+        </button>
+
+        <p id="message" role="status"></p>
+
+      </form>
+
+      <div class="magic-note">
+        💖 Setiap cerita hebat bermula
+        dengan satu imaginasi kecil!
+      </div>
+    </section>
+
+    <section class="workspace">
+
+      <div class="row library-heading">
+        <div>
+          <div class="eyebrow">KOLEKSI CERITA</div>
+          <h2>📚 Perpustakaan Ajaib Saya</h2>
+          <p>Semua cerita anda ada di sini.</p>
+        </div>
+
+        <button
+          class="ghost"
+          id="refresh"
+          type="button"
+        >
+          🔄 Muat Semula
+        </button>
+      </div>
+
+      <div id="library" class="library"></div>
+
+      <div id="editor" hidden>
+
+        <div class="editor-heading">
+
+          <div class="row">
+
+            <div>
+              <div class="eyebrow">✨ DRAF CERITA</div>
+              <h2 id="bookTitle"></h2>
+              <p id="moral"></p>
+            </div>
+
+            <div class="actions">
+
+              <button
+                class="ghost"
+                id="save"
+                type="button"
+              >
+                💾 Simpan Perubahan
+              </button>
+
+              <div class="pdf-export-controls">
+
+                <label for="pdfSize">
+                  📐 Saiz Buku
+                  <select id="pdfSize">
+                    <option value="A4">
+                      A4 — Buku Besar
+                    </option>
+
+                    <option value="A5">
+                      A5 — Buku Kecil
+                    </option>
+                  </select>
+                </label>
+
+                <button
+                  class="pdf-export-button"
+                  id="print"
+                  type="button"
+                >
+                  📥 Export Buku PDF
+                </button>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="storybook-tools">
+
+          <div class="storybook-tools-title">
+            🎨 Reka Bentuk Buku
+          </div>
+
+          <div class="storybook-settings">
+
+            <label for="bookFont">
+              Jenis Tulisan
+              <select id="bookFont">
+                <option value="Nunito">Nunito</option>
+                <option value="Fredoka">Fredoka</option>
+                <option value="Georgia">Georgia</option>
+              </select>
+            </label>
+
+            <label for="bookFontSize">
+              Saiz Tulisan
+              <select id="bookFontSize">
+                <option value="14">Kecil</option>
+                <option value="17" selected>Sederhana</option>
+                <option value="21">Besar</option>
+                <option value="25">Sangat Besar</option>
+              </select>
+            </label>
+
+            <label for="bookPaper">
+              Warna Kertas
+              <select id="bookPaper">
+                <option value="cream">Krim</option>
+                <option value="white">Putih</option>
+                <option value="pink">Merah Jambu</option>
+                <option value="blue">Biru Lembut</option>
+              </select>
+            </label>
+
+          </div>
+
+          <div class="storybook-view-buttons">
+            <button
+              id="editMode"
+              class="ghost"
+              type="button"
+            >
+              ✏️ Mod Sunting
+            </button>
+
+            <button
+              id="previewMode"
+              class="ghost"
+              type="button"
+            >
+              📖 Pratonton Buku
+            </button>
+          </div>
+        </div>
+
+        <div class="storybook-navigation">
+
+          <button
+            id="prevSpread"
+            class="ghost"
+            type="button"
+          >
+            ← Sebelum
+          </button>
+
+          <span id="spreadCounter"
+                aria-live="polite">
+            Kulit Buku
+          </span>
+
+          <button
+            id="nextSpread"
+            class="ghost"
+            type="button"
+          >
+            Seterusnya →
+          </button>
+
+        </div>
+
+        <div
+          id="pages"
+          class="storybook-pages"
+        ></div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div>🌈 Storyland AI</div>
+    <p>Tempat imaginasi menjadi cerita.</p>
+  </footer>
+
+  
+
+
+<script src="/book-quality.js"></script>
+<script src="/autosave-v11.js"></script>
+<script src="/dashboard-v12.js"></script>
+<script src="/print-book.js"></script>
+<script src="/auth-v13.js"></script>
+
+<!-- V17.5 -->
+<script src="/smart-layout-v175.js"></script>
+
+<!-- V17.6 -->
+<script src="/cover-designer-v176.js"></script>
+
+<!-- V17.7 — Undo & Redo -->
+<script src="/undo-redo-v177.js"></script>
+
+<!-- Storyland AI V18.1 Backup Center -->
+<script src="/book-backup-v18.js"></script>
+
+<!-- V18.2 — Draft Recovery -->
+<script src="/draft-recovery-v182.js"></script>
+
+<script src="/cover-idea-v185.js"></script>
+<script src="/auto-story-history-v193.js"></script>
+<script type="module" src="/app.js"></script>
+<script type="module" src="/editor-v3.js"></script>
+
+<!-- Storyland AI V18.7 — Antara Muka Bahasa Melayu -->
+<script src="/bahasa-melayu-v187.js"></script>
+
+<!-- V18.8 — Profil Pengguna -->
+<script src="/profile-v188.js"></script>
+
+<script src="/page-story-generator.js"></script>
+<script src="/story-history-v192.js"></script>
+</body>
+</html>

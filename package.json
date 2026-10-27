@@ -1,0 +1,1 @@
+{"name":"ebookai-gemini-vscode","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"node --watch server.js","start":"node server.js"},"dependencies":{"@google/genai":"^1.0.0","better-sqlite3":"^12.0.0","dotenv":"^17.0.0","express":"^5.0.0"},"engines":{"node":">=22"},"devDependencies":{"wrangler":"^4.153.0"}}
