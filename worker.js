@@ -696,6 +696,60 @@ Return exactly this structure:
   }
 }
 
+async function getBookById(request, env, bookId) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  try {
+    const book = await env.DB.prepare(`
+      SELECT *
+      FROM books
+      WHERE id = ?
+        AND owner_id = ?
+      LIMIT 1
+    `)
+      .bind(bookId, user.id)
+      .first();
+
+    if (!book) {
+      return json(
+        { error: "Buku tidak dijumpai." },
+        404
+      );
+    }
+
+    let story;
+
+    try {
+      story = JSON.parse(book.pages || "{}");
+    } catch {
+      return json(
+        { error: "Data buku rosak." },
+        500
+      );
+    }
+
+    return json({
+      ...book,
+      pages: story
+    });
+
+  } catch (error) {
+    console.error("[Get Book]", error);
+
+    return json(
+      { error: "Gagal membuka buku." },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -723,6 +777,17 @@ async function handleApi(request, env) {
   if (path === "/api/auth/profile" && request.method === "GET") return getProfile(request, env);
   if (path === "/api/auth/profile" && request.method === "PUT") return updateProfile(request, env);
   if (path === "/api/books" && request.method === "GET") {return getBooks(request, env);}
+  const bookMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})$/i
+);
+
+if (bookMatch && request.method === "GET") {
+  return getBookById(
+    request,
+    env,
+    bookMatch[1]
+  );
+}
   if (path === "/api/stories/generate" && request.method === "POST") {return generateStory(request, env);}
 
   return json({ error: "API belum dipindahkan ke Cloudflare Worker.", path }, 404);
