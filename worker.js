@@ -1022,6 +1022,194 @@ async function generateImage(request, env, bookId) {
   }
 }
 
+async function generatePageText(request, env, bookId, pageNumber) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT *
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  let story;
+
+  try {
+    story = JSON.parse(book.pages || "{}");
+  } catch {
+    return json(
+      { error: "Data buku rosak." },
+      500
+    );
+  }
+
+  const number = Number(pageNumber);
+
+  const index = Array.isArray(story.pages)
+    ? story.pages.findIndex(
+        p => Number(p.number) === number
+      )
+    : -1;
+
+  if (index < 0) {
+    return json(
+      { error: "Halaman tidak dijumpai." },
+      404
+    );
+  }
+
+  const body = await readJson(request);
+  const instructions = cleanText(
+    body?.instructions || "",
+    500
+  );
+
+  const current = story.pages[index];
+  const previous = story.pages[index - 1];
+  const next = story.pages[index + 1];
+
+  if (!env.GEMINI_API_KEY) {
+    return json(
+      { error: "Gemini API Key belum dikonfigurasi." },
+      503
+    );
+  }
+
+  const model =
+    env.GEMINI_TEXT_MODEL || "gemini-3.8-flash";
+
+  const prompt = `
+You are a professional children's story writer.
+
+Rewrite ONLY page ${number} of a children's book.
+
+BOOK TITLE:
+${book.title}
+
+MAIN STORY IDEA:
+${book.idea}
+
+TARGET AGE:
+${book.age}
+
+LANGUAGE:
+${book.language}
+
+BOOK MORAL:
+${story.moral || ""}
+
+PREVIOUS PAGE:
+${previous?.text || "Beginning of story"}
+
+CURRENT PAGE:
+${current.text || ""}
+
+NEXT PAGE:
+${next?.text || "End of story"}
+
+USER INSTRUCTIONS:
+${instructions || "Improve this page naturally."}
+
+RULES:
+- Write ONLY the replacement story text.
+- Maximum 35 words.
+- Minimum 5 words.
+- Maintain continuity.
+- Keep character names consistent.
+- No Markdown.
+`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(env.GEMINI_API_KEY)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: prompt }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 400
+          }
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return json(
+        {
+          error:
+            data?.error?.message ||
+            `Gemini HTTP ${response.status}`
+        },
+        response.status
+      );
+    }
+
+    const generated =
+      String(
+        data?.candidates?.[0]?.content?.parts?.[0]?.text || ""
+      )
+        .trim()
+        .replace(/^["“]|["”]$/g, "");
+
+    const words = generated
+      .split(/\s+/u)
+      .filter(Boolean).length;
+
+    if (!generated || words < 5 || words > 35) {
+      return json(
+        {
+          error:
+            "Gemini tidak menghasilkan teks dalam had 5–35 perkataan."
+        },
+        422
+      );
+    }
+
+    return json({
+      ok: true,
+      pageNumber: number,
+      originalText: current.text,
+      generatedText: generated,
+      wordCount: words
+    });
+
+  } catch (error) {
+    console.error("[Generate Page Text]", error);
+
+    return json(
+      { error: "Gagal menjana teks halaman." },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -1150,6 +1338,22 @@ if (
     request,
     env,
     generateImageMatch[1]
+  );
+}
+
+const generatePageTextMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})\/pages\/(\d+)\/generate-text$/i
+);
+
+if (
+  generatePageTextMatch &&
+  request.method === "POST"
+) {
+  return generatePageText(
+    request,
+    env,
+    generatePageTextMatch[1],
+    generatePageTextMatch[2]
   );
 }
 
