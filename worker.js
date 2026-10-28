@@ -363,6 +363,339 @@ async function getBooks(request, env) {
   }
 }
 
+function countWords(value) {
+  return String(value || "")
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean)
+    .length;
+}
+
+function normalizeAge(value) {
+  const raw = String(value || "6-8")
+    .trim()
+    .replace(/[–—]/g, "-")
+    .toLowerCase();
+
+  const values = {
+    "3-5": "3-5",
+    "3-5 tahun": "3-5",
+    "6-8": "6-8",
+    "6-8 tahun": "6-8",
+    "9-12": "9-12",
+    "9-12 tahun": "9-12"
+  };
+
+  return values[raw] || raw;
+}
+
+function normalizeLanguage(value) {
+  const raw = String(value || "Bahasa Melayu").trim();
+
+  const values = {
+    "bm": "Bahasa Melayu",
+    "ms": "Bahasa Melayu",
+    "malay": "Bahasa Melayu",
+    "bahasa melayu": "Bahasa Melayu",
+    "bahasa malaysia": "Bahasa Melayu",
+    "en": "English",
+    "english": "English"
+  };
+
+  return values[raw.toLowerCase()] || raw;
+}
+
+async function generateStory(request, env) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const body = await readJson(request);
+
+  if (!body) {
+    return json({ error: "JSON tidak sah." }, 400);
+  }
+
+  const title = cleanText(body.title, 120);
+  const idea = cleanText(body.idea, 2000);
+  const age = normalizeAge(body.age);
+  const language = normalizeLanguage(body.language);
+  const pageCount = Number(body.pageCount);
+
+  const allowedPages = new Set([
+    6, 8, 10, 12, 16, 20, 24, 30, 40, 50
+  ]);
+
+  if (!title) {
+    return json(
+      { error: "Tajuk buku diperlukan." },
+      400
+    );
+  }
+
+  if (idea.length < 12) {
+    return json(
+      { error: "Idea cerita terlalu pendek." },
+      400
+    );
+  }
+
+  if (!allowedPages.has(pageCount)) {
+    return json(
+      { error: "Bilangan muka surat tidak sah." },
+      400
+    );
+  }
+
+  if (!env.GEMINI_API_KEY) {
+    return json(
+      { error: "Gemini API Key belum dikonfigurasi." },
+      503
+    );
+  }
+
+  const model =
+    env.GEMINI_TEXT_MODEL || "gemini-3.8-flash";
+
+  const prompt = `
+You are a professional children's book author.
+
+Create one original children's story.
+
+BOOK TITLE:
+${title}
+
+STORY IDEA:
+${idea}
+
+TARGET AGE:
+${age}
+
+LANGUAGE:
+${language}
+
+NUMBER OF PAGES:
+${pageCount}
+
+STRICT RULES:
+- Return valid JSON only.
+- Exactly ${pageCount} pages.
+- Page numbers must start at 1 and increase consecutively.
+- Maximum 35 words of story text per page.
+- Keep characters consistent.
+- Each page must contain an English illustrationPrompt.
+- Include a moral.
+- Include an English coverIllustrationIdea.
+- No Markdown.
+
+Return exactly this structure:
+
+{
+  "title": "Book title",
+  "moral": "Story moral",
+  "coverIllustrationIdea": "English cover description",
+  "pages": [
+    {
+      "number": 1,
+      "text": "Story text",
+      "illustrationPrompt": "English illustration description"
+    }
+  ]
+}
+`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(env.GEMINI_API_KEY)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: prompt }
+              ]
+            }
+          ],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.7,
+            maxOutputTokens: 32768
+          }
+        })
+      }
+    );
+
+    const geminiData = await response.json();
+
+    if (!response.ok) {
+      console.error("[Gemini]", geminiData);
+
+      return json(
+        {
+          error:
+            geminiData?.error?.message ||
+            `Gemini HTTP ${response.status}`
+        },
+        response.status
+      );
+    }
+
+    const raw =
+      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!raw) {
+      return json(
+        { error: "Gemini tidak memulangkan cerita." },
+        502
+      );
+    }
+
+    let story;
+
+    try {
+      story = JSON.parse(raw);
+    } catch (error) {
+      console.error("[Gemini JSON]", raw);
+
+      return json(
+        { error: "Format jawapan Gemini tidak sah." },
+        502
+      );
+    }
+
+    if (
+      !Array.isArray(story.pages) ||
+      story.pages.length !== pageCount
+    ) {
+      return json(
+        {
+          error:
+            "Gemini tidak menghasilkan jumlah muka surat yang tepat."
+        },
+        422
+      );
+    }
+
+    for (let i = 0; i < story.pages.length; i++) {
+      const page = story.pages[i];
+
+      if (
+        page.number !== i + 1 ||
+        typeof page.text !== "string" ||
+        !page.text.trim() ||
+        countWords(page.text) > 35 ||
+        typeof page.illustrationPrompt !== "string"
+      ) {
+        return json(
+          {
+            error:
+              "Format halaman daripada Gemini tidak sah."
+          },
+          422
+        );
+      }
+    }
+
+    story.title = cleanText(
+      story.title || title,
+      120
+    );
+
+    story.coverImageUrl = null;
+    story.coverAuthor = "Storyland AI";
+    story.coverSubtitle =
+      "Sebuah cerita penuh imaginasi dan pengajaran";
+
+    story.coverDesign = {
+      template: "fantasy",
+      font: "Fredoka",
+      titleSize: 36,
+      titleColor: "#ffffff",
+      align: "center",
+      position: "bottom",
+      overlay: 65
+    };
+
+    story.characterGuide = "";
+    story.characterProfiles = [];
+
+    story.imageHistory = {
+      cover: [],
+      pages: {}
+    };
+
+    story.readingFont = "Nunito";
+    story.readingFontSize = 18;
+
+    story.pages = story.pages.map(page => ({
+      ...page,
+      imageUrl: null,
+      layout: "side",
+      theme: "fantasy",
+      decoration: "frame",
+      imageScale: 100,
+      imageAlign: "center"
+    }));
+
+    const id = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
+
+    await env.DB.prepare(`
+      INSERT INTO books (
+        id,
+        title,
+        idea,
+        age,
+        language,
+        pages,
+        created_at,
+        updated_at,
+        owner_id,
+        revision
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+    `)
+      .bind(
+        id,
+        story.title,
+        idea,
+        age,
+        language,
+        JSON.stringify(story),
+        timestamp,
+        timestamp,
+        user.id
+      )
+      .run();
+
+    return json({
+      id,
+      ...story
+    });
+
+  } catch (error) {
+    console.error("[Jana Cerita]", error);
+
+    return json(
+      {
+        error:
+          error?.message ||
+          "Gagal menjana cerita."
+      },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -390,6 +723,7 @@ async function handleApi(request, env) {
   if (path === "/api/auth/profile" && request.method === "GET") return getProfile(request, env);
   if (path === "/api/auth/profile" && request.method === "PUT") return updateProfile(request, env);
   if (path === "/api/books" && request.method === "GET") {return getBooks(request, env);}
+  if (path === "/api/stories/generate" && request.method === "POST") {return generateStory(request, env);}
 
   return json({ error: "API belum dipindahkan ke Cloudflare Worker.", path }, 404);
 }
