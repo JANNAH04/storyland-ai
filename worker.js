@@ -298,6 +298,71 @@ async function updateProfile(request, env) {
   });
 }
 
+async function getBooks(request, env) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  try {
+    const result = await env.DB.prepare(`
+      SELECT
+        id,
+        title,
+        age,
+        language,
+        pages,
+        revision,
+        created_at,
+        updated_at
+      FROM books
+      WHERE owner_id = ?
+      ORDER BY updated_at DESC
+      LIMIT 100
+    `)
+      .bind(user.id)
+      .all();
+
+    const books = (result.results || []).map(book => {
+      let story = {};
+
+      try {
+        story = JSON.parse(book.pages || "{}");
+      } catch {
+        story = {};
+      }
+
+      return {
+        id: book.id,
+        title: book.title,
+        age: book.age,
+        language: book.language,
+        pageCount: Array.isArray(story.pages)
+          ? story.pages.length
+          : 0,
+        coverImageUrl: story.coverImageUrl || null,
+        revision: book.revision,
+        created_at: book.created_at,
+        updated_at: book.updated_at
+      };
+    });
+
+    return json(books);
+
+  } catch (error) {
+    console.error("[Books]", error);
+
+    return json(
+      { error: "Gagal membaca perpustakaan." },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -324,6 +389,7 @@ async function handleApi(request, env) {
   if (path === "/api/auth/me" && request.method === "GET") return me(request, env);
   if (path === "/api/auth/profile" && request.method === "GET") return getProfile(request, env);
   if (path === "/api/auth/profile" && request.method === "PUT") return updateProfile(request, env);
+  if (path === "/api/books" && request.method === "GET") {return getBooks(request, env);}
 
   return json({ error: "API belum dipindahkan ke Cloudflare Worker.", path }, 404);
 }
