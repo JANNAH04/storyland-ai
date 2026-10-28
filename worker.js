@@ -793,6 +793,235 @@ async function getImageQuota(request, env) {
   }
 }
 
+async function generateImage(request, env, bookId) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const body = await readJson(request);
+
+  if (!body) {
+    return json(
+      { error: "JSON tidak sah." },
+      400
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT *
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  let story;
+
+  try {
+    story = JSON.parse(book.pages || "{}");
+  } catch {
+    return json(
+      { error: "Data buku rosak." },
+      500
+    );
+  }
+
+  const target = String(body.target || "");
+  const style = String(body.style || "fantasy");
+  const customPrompt = String(
+    body.customPrompt || ""
+  ).slice(0, 500);
+
+  let scene = "";
+
+  if (target === "cover") {
+    scene =
+      story.coverIllustrationIdea ||
+      `Portrait children's book cover for "${book.title}".`;
+  } else {
+    const pageNumber = Number(target);
+
+    const page = Array.isArray(story.pages)
+      ? story.pages.find(
+          p => Number(p.number) === pageNumber
+        )
+      : null;
+
+    if (!page) {
+      return json(
+        { error: "Halaman tidak sah." },
+        400
+      );
+    }
+
+    scene =
+      page.illustrationPrompt ||
+      page.text ||
+      "";
+  }
+
+  const imageModel =
+    env.CLOUDFLARE_IMAGE_MODEL ||
+    "@cf/black-forest-labs/flux-1-schnell";
+
+  if (
+    !env.CLOUDFLARE_ACCOUNT_ID ||
+    !env.CLOUDFLARE_API_TOKEN
+  ) {
+    return json(
+      {
+        error:
+          "Cloudflare Image AI belum dikonfigurasi."
+      },
+      503
+    );
+  }
+
+  const prompt = [
+    "Create one premium child-friendly storybook illustration.",
+    "Portrait orientation, 3:4 aspect ratio.",
+    "Keep recurring characters visually consistent.",
+    style === "anime"
+      ? "Colorful children's anime illustration."
+      : style === "watercolor"
+        ? "Gentle watercolor children's storybook illustration."
+        : style === "cartoon"
+          ? "Premium child-friendly 3D cartoon."
+          : "Magical fantasy children's picture book illustration.",
+    `SCENE: ${scene}`,
+    customPrompt
+      ? `ADDITIONAL DIRECTION: ${customPrompt}`
+      : "",
+    "No text, no lettering, no watermark."
+  ]
+    .filter(Boolean)
+    .join("\n")
+    .slice(0, 2048);
+
+  try {
+    const endpoint =
+      `https://api.cloudflare.com/client/v4/accounts/` +
+      `${encodeURIComponent(env.CLOUDFLARE_ACCOUNT_ID)}` +
+      `/ai/run/${imageModel}`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+
+      headers: {
+        Authorization:
+          `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+
+        "Content-Type":
+          "application/json"
+      },
+
+      body: JSON.stringify({
+        prompt,
+        steps: 4
+      })
+    });
+
+    const data = await response.json();
+
+    if (
+      !response.ok ||
+      data.success === false
+    ) {
+      console.error(
+        "[Cloudflare Image]",
+        data
+      );
+
+      return json(
+        {
+          error:
+            data?.errors?.[0]?.message ||
+            `Cloudflare HTTP ${response.status}`
+        },
+        response.status
+      );
+    }
+
+    const base64 =
+      data?.result?.image;
+
+    if (!base64) {
+      return json(
+        {
+          error:
+            "Cloudflare tidak memulangkan gambar."
+        },
+        502
+      );
+    }
+
+    const imageUrl =
+      `data:image/jpeg;base64,${base64}`;
+
+    if (target === "cover") {
+      story.coverImageUrl = imageUrl;
+    } else {
+      const page = story.pages.find(
+        p => Number(p.number) === Number(target)
+      );
+
+      if (page) {
+        page.imageUrl = imageUrl;
+      }
+    }
+
+    await env.DB.prepare(`
+      UPDATE books
+      SET pages = ?,
+          updated_at = ?,
+          revision = revision + 1
+      WHERE id = ?
+        AND owner_id = ?
+    `)
+      .bind(
+        JSON.stringify(story),
+        new Date().toISOString(),
+        bookId,
+        user.id
+      )
+      .run();
+
+    return json({
+      ok: true,
+      imageUrl
+    });
+
+  } catch (error) {
+    console.error(
+      "[Generate Image]",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error?.message ||
+          "Gagal menjana gambar."
+      },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -908,6 +1137,21 @@ async function handleApi(request, env) {
   ) {
     return getImageQuota(request, env);
   }
+
+  const generateImageMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})\/generate-image$/i
+);
+
+if (
+  generateImageMatch &&
+  request.method === "POST"
+) {
+  return generateImage(
+    request,
+    env,
+    generateImageMatch[1]
+  );
+}
 
   // FALLBACK
   return json(
