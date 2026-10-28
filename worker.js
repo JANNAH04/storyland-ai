@@ -1241,6 +1241,113 @@ async function getTextHistory(request, env, bookId, pageNumber) {
   });
 }
 
+async function saveTextHistory(request, env, bookId, pageNumber) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const number = Number(pageNumber);
+  const body = await readJson(request);
+  const text = String(body?.text || "").trim();
+
+  if (!text) {
+    return json(
+      { error: "Teks cerita diperlukan." },
+      400
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT id
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  try {
+    // Elakkan versi sama disimpan berulang kali
+    const latest = await env.DB.prepare(`
+      SELECT id, text
+      FROM page_text_history
+      WHERE owner_id = ?
+        AND book_id = ?
+        AND page_number = ?
+      ORDER BY created_at DESC
+      LIMIT 1
+    `)
+      .bind(
+        user.id,
+        bookId,
+        number
+      )
+      .first();
+
+    if (latest?.text === text) {
+      return json({
+        ok: true,
+        duplicate: true
+      });
+    }
+
+    const id = crypto.randomUUID();
+
+    await env.DB.prepare(`
+      INSERT INTO page_text_history (
+        id,
+        book_id,
+        owner_id,
+        page_number,
+        text,
+        created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
+    `)
+      .bind(
+        id,
+        bookId,
+        user.id,
+        number,
+        text,
+        new Date().toISOString()
+      )
+      .run();
+
+    return json(
+      {
+        ok: true,
+        id
+      },
+      201
+    );
+
+  } catch (error) {
+    console.error(
+      "[Save Text History]",
+      error
+    );
+
+    return json(
+      { error: "Gagal menyimpan sejarah cerita." },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -1397,6 +1504,18 @@ if (
   request.method === "GET"
 ) {
   return getTextHistory(
+    request,
+    env,
+    textHistoryMatch[1],
+    textHistoryMatch[2]
+  );
+}
+
+if (
+  textHistoryMatch &&
+  request.method === "POST"
+) {
+  return saveTextHistory(
     request,
     env,
     textHistoryMatch[1],
