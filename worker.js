@@ -1348,6 +1348,78 @@ async function saveTextHistory(request, env, bookId, pageNumber) {
   }
 }
 
+function ensureImageHistory(story) {
+  if (
+    !story.imageHistory ||
+    typeof story.imageHistory !== "object"
+  ) {
+    story.imageHistory = {};
+  }
+
+  if (!Array.isArray(story.imageHistory.cover)) {
+    story.imageHistory.cover = [];
+  }
+
+  if (
+    !story.imageHistory.pages ||
+    typeof story.imageHistory.pages !== "object"
+  ) {
+    story.imageHistory.pages = {};
+  }
+
+  return story;
+}
+
+function getCurrentImage(story, target) {
+  if (target === "cover") {
+    return story.coverImageUrl || null;
+  }
+
+  const page = story.pages?.find(
+    p => Number(p.number) === Number(target)
+  );
+
+  return page?.imageUrl || null;
+}
+
+function getImageHistoryList(story, target) {
+  ensureImageHistory(story);
+
+  if (target === "cover") {
+    return story.imageHistory.cover;
+  }
+
+  const key = String(target);
+
+  if (!Array.isArray(story.imageHistory.pages[key])) {
+    story.imageHistory.pages[key] = [];
+  }
+
+  return story.imageHistory.pages[key];
+}
+
+function rememberOldImage(story, target, imageUrl) {
+  if (!imageUrl) return;
+
+  const list = getImageHistoryList(
+    story,
+    target
+  );
+
+  const existing = list.indexOf(imageUrl);
+
+  if (existing >= 0) {
+    list.splice(existing, 1);
+  }
+
+  list.unshift(imageUrl);
+
+  // Maksimum simpan 12 gambar lama
+  if (list.length > 12) {
+    list.length = 12;
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -1476,6 +1548,24 @@ if (
     request,
     env,
     generateImageMatch[1]
+  );
+}
+
+const imageHistoryMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})\/image-history\/([^/]+)$/i
+);
+
+if (
+  imageHistoryMatch &&
+  request.method === "GET"
+) {
+  return getImageHistory(
+    request,
+    env,
+    imageHistoryMatch[1],
+    decodeURIComponent(
+      imageHistoryMatch[2]
+    )
   );
 }
 
