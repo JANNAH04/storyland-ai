@@ -797,20 +797,103 @@ async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  // ... route auth lain ...
+  if (!sameOriginAllowed(request)) {
+    return json(
+      { error: "Asal permintaan tidak dibenarkan." },
+      403
+    );
+  }
 
-  if (path === "/api/books" && request.method === "GET") {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204 });
+  }
+
+  // HEALTH
+  if (
+    path === "/api/health" &&
+    request.method === "GET"
+  ) {
+    return json({
+      ok: true,
+      service: "Storyland AI",
+      runtime: "Cloudflare Workers",
+      database: "D1",
+      auth: "ready"
+    });
+  }
+
+  // REGISTER
+  if (
+    path === "/api/auth/register" &&
+    request.method === "POST"
+  ) {
+    return register(request, env);
+  }
+
+  // LOGIN
+  if (
+    path === "/api/auth/login" &&
+    request.method === "POST"
+  ) {
+    return login(request, env);
+  }
+
+  // LOGOUT
+  if (
+    path === "/api/auth/logout" &&
+    request.method === "POST"
+  ) {
+    return logout(request, env);
+  }
+
+  // CURRENT USER
+  if (
+    path === "/api/auth/me" &&
+    request.method === "GET"
+  ) {
+    return me(request, env);
+  }
+
+  // PROFILE
+  if (
+    path === "/api/auth/profile" &&
+    request.method === "GET"
+  ) {
+    return getProfile(request, env);
+  }
+
+  if (
+    path === "/api/auth/profile" &&
+    request.method === "PUT"
+  ) {
+    return updateProfile(request, env);
+  }
+
+  // BOOK LIBRARY
+  if (
+    path === "/api/books" &&
+    request.method === "GET"
+  ) {
     return getBooks(request, env);
   }
 
+  // SINGLE BOOK
   const bookMatch = path.match(
     /^\/api\/books\/([a-f0-9-]{36})$/i
   );
 
-  if (bookMatch && request.method === "GET") {
-    return getBookById(request, env, bookMatch[1]);
+  if (
+    bookMatch &&
+    request.method === "GET"
+  ) {
+    return getBookById(
+      request,
+      env,
+      bookMatch[1]
+    );
   }
 
+  // GENERATE STORY
   if (
     path === "/api/stories/generate" &&
     request.method === "POST"
@@ -818,6 +901,7 @@ async function handleApi(request, env) {
     return generateStory(request, env);
   }
 
+  // IMAGE QUOTA
   if (
     path === "/api/image-studio/quota" &&
     request.method === "GET"
@@ -825,10 +909,12 @@ async function handleApi(request, env) {
     return getImageQuota(request, env);
   }
 
+  // FALLBACK
   return json(
     {
       error: "API belum dipindahkan ke Cloudflare Worker.",
-      path
+      path,
+      method: request.method
     },
     404
   );
@@ -838,11 +924,20 @@ export default {
   async fetch(request, env) {
     try {
       const url = new URL(request.url);
-      if (url.pathname.startsWith("/api/")) return await handleApi(request, env);
+
+      if (url.pathname.startsWith("/api/")) {
+        return await handleApi(request, env);
+      }
+
       return env.ASSETS.fetch(request);
+
     } catch (error) {
       console.error("[worker]", error);
-      return json({ error: "Ralat dalaman server." }, 500);
+
+      return json(
+        { error: "Ralat dalaman server." },
+        500
+      );
     }
-  },
+  }
 };
