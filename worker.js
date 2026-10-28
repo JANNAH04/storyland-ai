@@ -1210,6 +1210,37 @@ RULES:
   }
 }
 
+async function getTextHistory(request, env, bookId, pageNumber) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const number = Number(pageNumber);
+
+  const rows = await env.DB.prepare(`
+    SELECT id, text, created_at
+    FROM page_text_history
+    WHERE owner_id = ?
+      AND book_id = ?
+      AND page_number = ?
+    ORDER BY created_at DESC
+    LIMIT 20
+  `)
+    .bind(user.id, bookId, number)
+    .all();
+
+  return json({
+    ok: true,
+    pageNumber: number,
+    history: rows.results || []
+  });
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -1356,6 +1387,24 @@ if (
     generatePageTextMatch[2]
   );
 }
+
+const textHistoryMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})\/pages\/(\d+)\/text-history$/i
+);
+
+if (
+  textHistoryMatch &&
+  request.method === "GET"
+) {
+  return getTextHistory(
+    request,
+    env,
+    textHistoryMatch[1],
+    textHistoryMatch[2]
+  );
+}
+
+
 
   // FALLBACK
   return json(
