@@ -750,6 +750,49 @@ async function getBookById(request, env, bookId) {
   }
 }
 
+async function getImageQuota(request, env) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const limit = Number(env.IMAGE_DAILY_LIMIT || 500);
+  const day = new Date().toISOString().slice(0, 10);
+
+  try {
+    const row = await env.DB.prepare(`
+      SELECT used
+      FROM image_daily_usage
+      WHERE user_id = ?
+        AND day = ?
+      LIMIT 1
+    `)
+      .bind(user.id, day)
+      .first();
+
+    const used = Number(row?.used || 0);
+
+    return json({
+      limit,
+      used,
+      remaining: Math.max(0, limit - used),
+      reset: "00:00 UTC"
+    });
+
+  } catch (error) {
+    console.error("[Image Quota]", error);
+
+    return json(
+      { error: "Tidak dapat membaca kuota gambar." },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -791,6 +834,13 @@ if (bookMatch && request.method === "GET") {
   if (path === "/api/stories/generate" && request.method === "POST") {return generateStory(request, env);}
 
   return json({ error: "API belum dipindahkan ke Cloudflare Worker.", path }, 404);
+}
+
+if (
+  path === "/api/image-studio/quota" &&
+  request.method === "GET"
+) {
+  return getImageQuota(request, env);
 }
 
 export default {
