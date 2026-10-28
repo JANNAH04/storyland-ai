@@ -797,50 +797,41 @@ async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  if (!sameOriginAllowed(request)) {
-    return json({ error: "Asal permintaan tidak dibenarkan." }, 403);
+  // ... route auth lain ...
+
+  if (path === "/api/books" && request.method === "GET") {
+    return getBooks(request, env);
   }
 
-  if (request.method === "OPTIONS") return new Response(null, { status: 204 });
-
-  if (path === "/api/health" && request.method === "GET") {
-    return json({
-      ok: true,
-      service: "Storyland AI",
-      runtime: "Cloudflare Workers",
-      database: "D1",
-      auth: "ready",
-    });
-  }
-
-  if (path === "/api/auth/register" && request.method === "POST") return register(request, env);
-  if (path === "/api/auth/login" && request.method === "POST") return login(request, env);
-  if (path === "/api/auth/logout" && request.method === "POST") return logout(request, env);
-  if (path === "/api/auth/me" && request.method === "GET") return me(request, env);
-  if (path === "/api/auth/profile" && request.method === "GET") return getProfile(request, env);
-  if (path === "/api/auth/profile" && request.method === "PUT") return updateProfile(request, env);
-  if (path === "/api/books" && request.method === "GET") {return getBooks(request, env);}
   const bookMatch = path.match(
-  /^\/api\/books\/([a-f0-9-]{36})$/i
-);
-
-if (bookMatch && request.method === "GET") {
-  return getBookById(
-    request,
-    env,
-    bookMatch[1]
+    /^\/api\/books\/([a-f0-9-]{36})$/i
   );
-}
-  if (path === "/api/stories/generate" && request.method === "POST") {return generateStory(request, env);}
 
-  return json({ error: "API belum dipindahkan ke Cloudflare Worker.", path }, 404);
-}
+  if (bookMatch && request.method === "GET") {
+    return getBookById(request, env, bookMatch[1]);
+  }
 
-if (
-  path === "/api/image-studio/quota" &&
-  request.method === "GET"
-) {
-  return getImageQuota(request, env);
+  if (
+    path === "/api/stories/generate" &&
+    request.method === "POST"
+  ) {
+    return generateStory(request, env);
+  }
+
+  if (
+    path === "/api/image-studio/quota" &&
+    request.method === "GET"
+  ) {
+    return getImageQuota(request, env);
+  }
+
+  return json(
+    {
+      error: "API belum dipindahkan ke Cloudflare Worker.",
+      path
+    },
+    404
+  );
 }
 
 export default {
