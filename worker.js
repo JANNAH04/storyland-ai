@@ -1,6 +1,6 @@
 const SESSION_COOKIE = "storyland_session";
 const SESSION_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
-const PBKDF2_ITERATIONS = 120000;
+const PBKDF2_ITERATIONS = 10000;
 
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
