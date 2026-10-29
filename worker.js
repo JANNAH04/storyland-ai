@@ -2249,25 +2249,6 @@ async function incrementImageUsage(env, userId) {
     .run();
 }
 
-async function incrementImageUsage(env, userId) {
-  const day = new Date().toISOString().slice(0, 10);
-
-  await env.DB.prepare(`
-    INSERT INTO image_daily_usage (
-      user_id,
-      day,
-      used
-    )
-    VALUES (?, ?, 1)
-
-    ON CONFLICT(user_id, day)
-    DO UPDATE SET
-      used = used + 1
-  `)
-    .bind(userId, day)
-    .run();
-}
-
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
