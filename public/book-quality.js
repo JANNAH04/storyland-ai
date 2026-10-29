@@ -14,9 +14,23 @@
   }
 
   function hasImage(url) {
-    return typeof url === "string" &&
-      /^\/generated\/[a-f0-9-]{36}\/[\w.-]+\.(png|jpg|jpeg|webp)$/i.test(url);
+  if (
+    typeof url !== "string" ||
+    !url.trim()
+  ) {
+    return false;
   }
+
+  const value = url.trim();
+
+  return (
+    value.startsWith("data:image/") ||
+    value.startsWith("/api/images/") ||
+    value.startsWith("/generated/") ||
+    value.startsWith("https://") ||
+    value.startsWith("http://")
+  );
+}
 
   function checkBook(story) {
     const pages = Array.isArray(story?.pages)
