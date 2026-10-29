@@ -1,27 +1,24 @@
-
-/* ======================================================
-   STORYLAND V20.1 FIXED
-   FULL APPLICATION
-
-   Gemini Stories
-   Cloudflare AI Images
-   Character Consistency
-   Image History
-   Cover Designer
-   Smart Book Layout
-   Undo / Redo
-   Auto-Save Protection
-   Backup and Draft Recovery
-   Revision Conflict Protection
-   Kids Typography
-   ====================================================== */
-
 const $ = id => document.getElementById(id);
 
 let selected = null;
 
 const MAX_WORDS = 100;
 const MIN_WORDS = 5;
+
+const LAYOUTS = [
+  [
+    'full-top',
+    'Gambar Penuh + Teks Atas'
+  ],
+  [
+    'full-center',
+    'Gambar Penuh + Teks Tengah'
+  ],
+  [
+    'full-bottom',
+    'Gambar Penuh + Teks Bawah'
+  ]
+];
 
 const THEMES = [
   ['fantasy', '✨ Dunia Fantasi'],
