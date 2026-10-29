@@ -17,5 +17,14 @@
       "database_name": "storyland-db",
       "database_id": "513c1bc1-454e-49ce-be8a-a93e8380283c"
     }
-  ]
+  ],
+
+  "kv_namespaces": [
+  {
+    "binding": "IMAGES_KV",
+    "id": "91e40ccf37cf48db8d4b4c5f47315d3c"
+  }
+]
 }
+
+
