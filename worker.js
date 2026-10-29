@@ -1311,6 +1311,55 @@ async function getBooks(
   }
 }
 
+async function migrateLegacyCoverToKV(
+  env,
+  userId,
+  bookId,
+  story
+) {
+  const current =
+    story?.coverImageUrl;
+
+  if (
+    typeof current !== "string" ||
+    !current.startsWith("data:image/")
+  ) {
+    return false;
+  }
+
+  const match =
+    current.match(
+      /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/s
+    );
+
+  if (!match) {
+    return false;
+  }
+
+  const contentType =
+    match[1];
+
+  const base64 =
+    match[2];
+
+  const bytes =
+    base64ToBytes(base64);
+
+  const stored =
+    await saveImageToKV(
+      env,
+      userId,
+      bookId,
+      bytes.buffer,
+      contentType
+    );
+
+  story.coverImageUrl =
+    stored.imageUrl;
+
+  return true;
+}
+
 
 async function getBookById(
   request,
@@ -3387,6 +3436,39 @@ async function generateImage(
           "{}"
         )
       );
+
+      const coverMigrated =
+  await migrateLegacyCoverToKV(
+    env,
+    user.id,
+    bookId,
+    story
+  );
+
+if (coverMigrated) {
+  await env.DB
+    .prepare(`
+      UPDATE books
+
+      SET
+        pages = ?,
+        updated_at = ?,
+        revision = revision + 1
+
+      WHERE
+        id = ?
+        AND owner_id = ?
+    `)
+
+    .bind(
+      JSON.stringify(story),
+      new Date().toISOString(),
+      bookId,
+      user.id
+    )
+
+    .run();
+}
 
     let scene;
 
