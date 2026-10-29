@@ -309,7 +309,6 @@
     // Preserve current page when editor rebuilds.
     currentPage = clampPage(currentPage);
 
-    ensureToolbar();
     ensureNavigation();
 
     applyTypography(false);
