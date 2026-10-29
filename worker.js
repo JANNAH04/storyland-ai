@@ -2353,6 +2353,119 @@ if (
   bookMatch &&
   request.method === "PUT"
 ) {
+
+  const D1_MAX_BACKUPS = 20;
+const D1_AUTO_BACKUP_MS = 15 * 60 * 1000;
+
+async function shouldAutoBackup(
+  env,
+  bookId,
+  ownerId
+) {
+  const record = await env.DB.prepare(`
+    SELECT created_at
+    FROM book_backups
+    WHERE book_id = ?
+      AND owner_id = ?
+      AND label = 'Backup Automatik'
+    ORDER BY created_at DESC
+    LIMIT 1
+  `)
+    .bind(bookId, ownerId)
+    .first();
+
+  if (!record) {
+    return true;
+  }
+
+  const lastTime =
+    Date.parse(record.created_at);
+
+  if (!Number.isFinite(lastTime)) {
+    return true;
+  }
+
+  return (
+    Date.now() - lastTime >=
+    D1_AUTO_BACKUP_MS
+  );
+}
+
+async function createBookBackup(
+  env,
+  book,
+  ownerId,
+  label = "Backup Automatik"
+) {
+  const id = crypto.randomUUID();
+  const createdAt =
+    new Date().toISOString();
+
+  let story;
+
+  try {
+    story = JSON.parse(book.pages || "{}");
+  } catch {
+    throw new Error(
+      "Data buku tidak sah untuk backup."
+    );
+  }
+
+  const snapshot = JSON.stringify({
+    title: book.title || "",
+    idea: book.idea || "",
+    age: book.age || "",
+    language: book.language || "",
+    story
+  });
+
+  await env.DB.prepare(`
+    INSERT INTO book_backups (
+      id,
+      book_id,
+      owner_id,
+      label,
+      snapshot,
+      created_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?)
+  `)
+    .bind(
+      id,
+      book.id,
+      ownerId,
+      label,
+      snapshot,
+      createdAt
+    )
+    .run();
+
+  // Simpan maksimum 20 backup setiap buku
+  await env.DB.prepare(`
+    DELETE FROM book_backups
+    WHERE book_id = ?
+      AND owner_id = ?
+      AND id NOT IN (
+        SELECT id
+        FROM book_backups
+        WHERE book_id = ?
+          AND owner_id = ?
+        ORDER BY created_at DESC
+        LIMIT ?
+      )
+  `)
+    .bind(
+      book.id,
+      ownerId,
+      book.id,
+      ownerId,
+      D1_MAX_BACKUPS
+    )
+    .run();
+
+  return id;
+}
+
   return updateBook(
     request,
     env,
