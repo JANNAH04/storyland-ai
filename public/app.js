@@ -25,12 +25,6 @@ const MIN_WORDS = 5;
 
 const LAYOUTS = [
   
-  ['top', 'Teks Atas'],
-  ['bottom', 'Teks Bawah'],
-  ['side', 'Sebelah (Asal)'],
-  ['left', 'Sebelah'],
-  ['right', 'Sebelah Terbalik'],
-
   ['full-top', 'Gambar Penuh + Teks Atas'],
   ['full-center', 'Gambar Penuh + Teks Tengah'],
   ['full-bottom', 'Gambar Penuh + Teks Bawah']
@@ -284,7 +278,7 @@ function normalizeStory(story) {
         layout: choose(
           page.layout,
           LAYOUTS,
-          'side'
+          'full-bottom'
         ),
 
         theme: choose(
