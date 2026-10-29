@@ -2098,6 +2098,106 @@ async function restoreImageHistory(
   });
 }
 
+async function getImageHistory(
+  request,
+  env,
+  bookId,
+  target
+) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  try {
+    const book = await env.DB.prepare(`
+      SELECT pages
+      FROM books
+      WHERE id = ?
+        AND owner_id = ?
+      LIMIT 1
+    `)
+      .bind(bookId, user.id)
+      .first();
+
+    if (!book) {
+      return json(
+        { error: "Buku tidak dijumpai." },
+        404
+      );
+    }
+
+    const story = JSON.parse(book.pages || "{}");
+
+    ensureImageHistory(story);
+
+    let currentImageUrl = null;
+    let history = [];
+
+    if (target === "cover") {
+      currentImageUrl =
+        story.coverImageUrl || null;
+
+      history =
+        Array.isArray(story.imageHistory.cover)
+          ? story.imageHistory.cover
+          : [];
+    } else {
+      const pageNumber = Number(target);
+
+      const page = Array.isArray(story.pages)
+        ? story.pages.find(
+            p => Number(p.number) === pageNumber
+          )
+        : null;
+
+      if (!page) {
+        return json(
+          { error: "Halaman tidak dijumpai." },
+          404
+        );
+      }
+
+      currentImageUrl =
+        page.imageUrl || null;
+
+      history =
+        Array.isArray(
+          story.imageHistory.pages[
+            String(pageNumber)
+          ]
+        )
+          ? story.imageHistory.pages[
+              String(pageNumber)
+            ]
+          : [];
+    }
+
+    return json({
+      ok: true,
+      target,
+      currentImageUrl,
+      history
+    });
+
+  } catch (error) {
+    console.error("[Image History]", error);
+
+    return json(
+      {
+        error:
+          error?.message ||
+          "Gagal membaca sejarah gambar."
+      },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
