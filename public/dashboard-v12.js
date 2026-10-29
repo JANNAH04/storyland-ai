@@ -19,11 +19,40 @@
   }
 
   function safeCover(url) {
-    return typeof url === 'string' &&
-      /^\/generated\/[a-f0-9-]{36}\/[\w.-]+\.(png|jpg|jpeg|webp)$/i.test(url)
-      ? url
-      : null;
+  if (
+    typeof url !== 'string' ||
+    !url.trim()
+  ) {
+    return '';
   }
+
+  const value = url.trim();
+
+  // Gambar lama base64
+  if (value.startsWith('data:image/')) {
+    return value;
+  }
+
+  // Gambar baru dari Cloudflare KV
+  if (value.startsWith('/api/images/')) {
+    return value;
+  }
+
+  // Format lama Storyland
+  if (value.startsWith('/generated/')) {
+    return value;
+  }
+
+  // URL penuh
+  if (
+    value.startsWith('https://') ||
+    value.startsWith('http://')
+  ) {
+    return value;
+  }
+
+  return '';
+}
 
   async function api(url, options = {}) {
     const response = await fetch(url, options);
@@ -51,7 +80,13 @@
       const img = el('img');
       img.src = coverUrl;
       img.alt = 'Cover ' + book.title;
-      img.loading = 'lazy';
+      img.loading = 'eager';
+img.decoding = 'async';
+
+img.style.display = 'block';
+img.style.width = '100%';
+img.style.height = '100%';
+img.style.objectFit = 'cover';
 
       img.onerror = () => {
         cover.replaceChildren(

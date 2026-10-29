@@ -2046,4 +2046,23 @@ footer p { font-size: 12px; }
   z-index: 100;
   pointer-events: auto !important;
   cursor: pointer !important;
+}/* ==========================================
+   DASHBOARD COVER IMAGE FIX
+   ========================================== */
+
+.dashboard-cover {
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-cover > img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
