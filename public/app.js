@@ -185,20 +185,23 @@ function notifyEditing() {
 }
 
 function refreshQualityChecker() {
-  if (!selected) return;
+  if (!selected?.pages) return;
 
   const quality = window.StorylandQuality;
 
   if (!quality) return;
 
   try {
+    // Paksa Quality Checker baca data buku terbaru.
+    if (typeof quality.mount === 'function') {
+      quality.mount(selected.pages);
+      return;
+    }
+
     if (typeof quality.refresh === 'function') {
       quality.refresh(selected.pages);
-    } else if (
-      typeof quality.mount === 'function'
-    ) {
-      quality.mount(selected.pages);
     }
+
   } catch (error) {
     console.error(
       '[Quality Checker]',
