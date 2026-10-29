@@ -2335,6 +2335,234 @@ async function serveImageFromKV(
   }
 }
 
+async function getBookBackups(
+  request,
+  env,
+  bookId
+) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT id
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  const result = await env.DB.prepare(`
+    SELECT id, label, created_at
+    FROM book_backups
+    WHERE book_id = ?
+      AND owner_id = ?
+    ORDER BY created_at DESC
+    LIMIT 20
+  `)
+    .bind(bookId, user.id)
+    .all();
+
+  return json({
+    ok: true,
+    backups: result.results || []
+  });
+}
+
+async function createManualBookBackup(
+  request,
+  env,
+  bookId
+) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT *
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  const body = await readJson(request);
+
+  const label =
+    typeof body?.label === "string" &&
+    body.label.trim()
+      ? body.label.trim().slice(0, 80)
+      : "Backup Manual";
+
+  const backupId =
+    await createBookBackup(
+      env,
+      book,
+      user.id,
+      label
+    );
+
+  return json(
+    {
+      ok: true,
+      backupId
+    },
+    201
+  );
+}
+
+async function restoreBookBackup(
+  request,
+  env,
+  bookId,
+  backupId
+) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT *
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  const backup = await env.DB.prepare(`
+    SELECT *
+    FROM book_backups
+    WHERE id = ?
+      AND book_id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(
+      backupId,
+      bookId,
+      user.id
+    )
+    .first();
+
+  if (!backup) {
+    return json(
+      { error: "Backup tidak dijumpai." },
+      404
+    );
+  }
+
+  let snapshot;
+
+  try {
+    snapshot =
+      JSON.parse(backup.snapshot);
+  } catch {
+    return json(
+      { error: "Data backup rosak." },
+      422
+    );
+  }
+
+  if (
+    !snapshot?.story ||
+    !Array.isArray(snapshot.story.pages)
+  ) {
+    return json(
+      { error: "Format backup tidak sah." },
+      422
+    );
+  }
+
+  // Simpan keadaan semasa sebelum restore
+  await createBookBackup(
+    env,
+    book,
+    user.id,
+    "Sebelum Restore"
+  );
+
+  const result = await env.DB.prepare(`
+    UPDATE books
+    SET title = ?,
+        idea = ?,
+        age = ?,
+        language = ?,
+        pages = ?,
+        updated_at = ?,
+        revision = revision + 1
+    WHERE id = ?
+      AND owner_id = ?
+  `)
+    .bind(
+      snapshot.title || book.title,
+      snapshot.idea || book.idea,
+      snapshot.age || book.age,
+      snapshot.language || book.language,
+      JSON.stringify(snapshot.story),
+      new Date().toISOString(),
+      bookId,
+      user.id
+    )
+    .run();
+
+  if (
+    !result.success ||
+    Number(result.meta?.changes || 0) !== 1
+  ) {
+    return json(
+      { error: "Gagal memulihkan backup." },
+      500
+    );
+  }
+
+  return json({
+    ok: true,
+    message: "Buku berjaya dipulihkan."
+  });
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -2455,6 +2683,48 @@ if (
   bookMatch &&
   request.method === "PUT"
 ) {
+
+  const backupListMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})\/backups$/i
+);
+
+if (
+  backupListMatch &&
+  request.method === "GET"
+) {
+  return getBookBackups(
+    request,
+    env,
+    backupListMatch[1]
+  );
+}
+
+if (
+  backupListMatch &&
+  request.method === "POST"
+) {
+  return createManualBookBackup(
+    request,
+    env,
+    backupListMatch[1]
+  );
+}
+
+const backupRestoreMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})\/backups\/([a-f0-9-]{36})\/restore$/i
+);
+
+if (
+  backupRestoreMatch &&
+  request.method === "POST"
+) {
+  return restoreBookBackup(
+    request,
+    env,
+    backupRestoreMatch[1],
+    backupRestoreMatch[2]
+  );
+}
 
   const D1_MAX_BACKUPS = 20;
 const D1_AUTO_BACKUP_MS = 15 * 60 * 1000;
