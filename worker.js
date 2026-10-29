@@ -1,3 +1,9 @@
+const R2_FREE_GUARD_BYTES =
+  8 * 1024 * 1024 * 1024; // 8 GB
+
+const R2_WARNING_BYTES =
+  7 * 1024 * 1024 * 1024; // warning 7 GB
+
 const SESSION_COOKIE = "storyland_session";
 const SESSION_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 const PBKDF2_ITERATIONS = 10000;
@@ -1007,18 +1013,6 @@ if (target === "cover") {
   page.imageUrl = imageUrl;
 }
 
-    if (target === "cover") {
-      story.coverImageUrl = imageUrl;
-    } else {
-      const page = story.pages.find(
-        p => Number(p.number) === Number(target)
-      );
-
-      if (page) {
-        page.imageUrl = imageUrl;
-      }
-    }
-
     await env.DB.prepare(`
       UPDATE books
       SET pages = ?,
@@ -1647,6 +1641,336 @@ Requirements:
   }
 }
 
+async function getStorageUsage(env) {
+  const row = await env.DB.prepare(`
+    SELECT total_bytes, total_objects
+    FROM storage_usage
+    WHERE id = 'r2-global'
+    LIMIT 1
+  `).first();
+
+  return {
+    totalBytes: Number(row?.total_bytes || 0),
+    totalObjects: Number(row?.total_objects || 0)
+  };
+}
+
+async function canStoreImage(env, newBytes) {
+  const usage = await getStorageUsage(env);
+
+  const projected =
+    usage.totalBytes + Number(newBytes || 0);
+
+  return {
+    allowed:
+      projected <= R2_FREE_GUARD_BYTES,
+
+    warning:
+      projected >= R2_WARNING_BYTES,
+
+    currentBytes:
+      usage.totalBytes,
+
+    projectedBytes:
+      projected,
+
+    remainingBytes:
+      Math.max(
+        0,
+        R2_FREE_GUARD_BYTES - usage.totalBytes
+      )
+  };
+}
+
+async function recordR2Upload(env, bytes) {
+  await env.DB.prepare(`
+    UPDATE storage_usage
+    SET total_bytes = total_bytes + ?,
+        total_objects = total_objects + 1,
+        updated_at = ?
+    WHERE id = 'r2-global'
+  `)
+    .bind(
+      Number(bytes),
+      new Date().toISOString()
+    )
+    .run();
+}
+
+async function recordR2Delete(env, bytes) {
+  await env.DB.prepare(`
+    UPDATE storage_usage
+    SET total_bytes =
+          MAX(0, total_bytes - ?),
+        total_objects =
+          MAX(0, total_objects - 1),
+        updated_at = ?
+    WHERE id = 'r2-global'
+  `)
+    .bind(
+      Number(bytes),
+      new Date().toISOString()
+    )
+    .run();
+}
+
+async function updateBook(request, env, bookId) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const body = await readJson(request);
+
+  if (!body) {
+    return json(
+      { error: "JSON tidak sah." },
+      400
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT *
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  const expectedRevision = Number(body.revision);
+
+  if (
+    !Number.isSafeInteger(expectedRevision) ||
+    expectedRevision < 1
+  ) {
+    return json(
+      {
+        code: "REVISION_REQUIRED",
+        error:
+          "Versi buku diperlukan. Sila buka semula buku."
+      },
+      428
+    );
+  }
+
+  if (Number(book.revision) !== expectedRevision) {
+    return json(
+      {
+        code: "BOOK_CONFLICT",
+        error:
+          "Buku telah diubah pada tab atau peranti lain.",
+        currentRevision: Number(book.revision)
+      },
+      409
+    );
+  }
+
+  let story;
+
+  try {
+    story = JSON.parse(book.pages || "{}");
+  } catch {
+    return json(
+      { error: "Data buku rosak." },
+      500
+    );
+  }
+
+  if (!Array.isArray(story.pages)) {
+    return json(
+      { error: "Data halaman buku tidak sah." },
+      500
+    );
+  }
+
+  const incomingPages = body.pages;
+
+  if (
+    !Array.isArray(incomingPages) ||
+    incomingPages.length !== story.pages.length
+  ) {
+    return json(
+      { error: "Senarai halaman tidak sah." },
+      400
+    );
+  }
+
+  const incomingMap = new Map();
+
+  for (const page of incomingPages) {
+    if (
+      !page ||
+      !Number.isInteger(Number(page.number)) ||
+      typeof page.text !== "string" ||
+      page.text.length > 6000
+    ) {
+      return json(
+        { error: "Data halaman tidak sah." },
+        400
+      );
+    }
+
+    incomingMap.set(
+      Number(page.number),
+      page
+    );
+  }
+
+  for (const oldPage of story.pages) {
+    const incoming =
+      incomingMap.get(Number(oldPage.number));
+
+    if (!incoming) {
+      return json(
+        { error: "Ada halaman yang hilang." },
+        400
+      );
+    }
+  }
+
+  story.pages = story.pages.map(oldPage => {
+    const incoming =
+      incomingMap.get(Number(oldPage.number));
+
+    return {
+      ...oldPage,
+
+      text:
+        incoming.text,
+
+      layout:
+        typeof incoming.layout === "string"
+          ? incoming.layout
+          : oldPage.layout,
+
+      theme:
+        typeof incoming.theme === "string"
+          ? incoming.theme
+          : oldPage.theme,
+
+      decoration:
+        typeof incoming.decoration === "string"
+          ? incoming.decoration
+          : oldPage.decoration,
+
+      imageScale:
+        Number.isFinite(
+          Number(incoming.imageScale)
+        )
+          ? Number(incoming.imageScale)
+          : oldPage.imageScale,
+
+      imageAlign:
+        typeof incoming.imageAlign === "string"
+          ? incoming.imageAlign
+          : oldPage.imageAlign
+    };
+  });
+
+  if (typeof body.coverAuthor === "string") {
+    story.coverAuthor =
+      body.coverAuthor.slice(0, 100);
+  }
+
+  if (typeof body.coverSubtitle === "string") {
+    story.coverSubtitle =
+      body.coverSubtitle.slice(0, 200);
+  }
+
+  if (
+    typeof body.coverIllustrationIdea === "string"
+  ) {
+    story.coverIllustrationIdea =
+      body.coverIllustrationIdea.slice(
+        0,
+        1000
+      );
+  }
+
+  if (
+    body.coverDesign &&
+    typeof body.coverDesign === "object" &&
+    !Array.isArray(body.coverDesign)
+  ) {
+    story.coverDesign =
+      body.coverDesign;
+  }
+
+  if (typeof body.readingFont === "string") {
+    story.readingFont =
+      body.readingFont.slice(0, 80);
+  }
+
+  if (
+    Number.isFinite(
+      Number(body.readingFontSize)
+    )
+  ) {
+    story.readingFontSize =
+      Math.max(
+        14,
+        Math.min(
+          30,
+          Number(body.readingFontSize)
+        )
+      );
+  }
+
+  const nextRevision =
+    expectedRevision + 1;
+
+  const result = await env.DB.prepare(`
+    UPDATE books
+    SET pages = ?,
+        updated_at = ?,
+        revision = ?
+    WHERE id = ?
+      AND owner_id = ?
+      AND revision = ?
+  `)
+    .bind(
+      JSON.stringify(story),
+      new Date().toISOString(),
+      nextRevision,
+      bookId,
+      user.id,
+      expectedRevision
+    )
+    .run();
+
+  if (
+    !result.success ||
+    Number(result.meta?.changes || 0) !== 1
+  ) {
+    return json(
+      {
+        code: "BOOK_CONFLICT",
+        error:
+          "Buku berubah semasa proses simpan. Sila muat semula."
+      },
+      409
+    );
+  }
+
+  return json({
+    ok: true,
+    revision: nextRevision
+  });
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -1737,15 +2061,26 @@ async function handleApi(request, env) {
   );
 
   if (
-    bookMatch &&
-    request.method === "GET"
-  ) {
-    return getBookById(
-      request,
-      env,
-      bookMatch[1]
-    );
-  }
+  bookMatch &&
+  request.method === "GET"
+) {
+  return getBookById(
+    request,
+    env,
+    bookMatch[1]
+  );
+}
+
+if (
+  bookMatch &&
+  request.method === "PUT"
+) {
+  return updateBook(
+    request,
+    env,
+    bookMatch[1]
+  );
+}
 
   // GENERATE STORY
   if (
