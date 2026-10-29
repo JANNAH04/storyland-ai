@@ -1420,6 +1420,198 @@ function rememberOldImage(story, target, imageUrl) {
   }
 }
 
+async function generateCoverIdea(request, env, bookId) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT *
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  if (!env.GEMINI_API_KEY) {
+    return json(
+      { error: "Gemini belum dikonfigurasi." },
+      503
+    );
+  }
+
+  let story;
+
+  try {
+    story = JSON.parse(book.pages || "{}");
+  } catch {
+    return json(
+      { error: "Data buku rosak." },
+      500
+    );
+  }
+
+  const summary = Array.isArray(story.pages)
+    ? story.pages
+        .map(p => p.text || "")
+        .join("\n")
+        .slice(0, 6000)
+    : "";
+
+  const characters =
+    Array.isArray(story.characterProfiles)
+      ? story.characterProfiles
+          .map(c =>
+            `${c.name}: ${c.description}`
+          )
+          .join("\n")
+          .slice(0, 1000)
+      : "";
+
+  const model =
+    env.GEMINI_TEXT_MODEL ||
+    "gemini-3.8-flash";
+
+  const prompt = `
+Create one premium English illustration description
+for a children's book front cover.
+
+Title:
+${book.title}
+
+Story:
+${summary}
+
+Characters:
+${characters}
+
+Character appearance guide:
+${story.characterGuide || ""}
+
+Requirements:
+- Portrait composition.
+- Attractive child-friendly illustration.
+- Maintain recurring character appearance.
+- Beautiful balanced colors.
+- Keep visual space for the book title.
+- No text, letters or watermark.
+- Maximum 1000 characters.
+- Return the illustration description only.
+`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(env.GEMINI_API_KEY)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: prompt }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 500
+          }
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(
+        "[Cover Idea Gemini]",
+        data
+      );
+
+      return json(
+        {
+          error:
+            data?.error?.message ||
+            `Gemini HTTP ${response.status}`
+        },
+        response.status
+      );
+    }
+
+    const idea = String(
+      data?.candidates?.[0]
+        ?.content?.parts?.[0]?.text || ""
+    )
+      .trim()
+      .slice(0, 1000);
+
+    if (!idea) {
+      return json(
+        {
+          error:
+            "Gemini tidak memulangkan idea kulit buku."
+        },
+        502
+      );
+    }
+
+    story.coverIllustrationIdea = idea;
+
+    await env.DB.prepare(`
+      UPDATE books
+      SET pages = ?,
+          updated_at = ?,
+          revision = revision + 1
+      WHERE id = ?
+        AND owner_id = ?
+    `)
+      .bind(
+        JSON.stringify(story),
+        new Date().toISOString(),
+        bookId,
+        user.id
+      )
+      .run();
+
+    return json({
+      ok: true,
+      coverIllustrationIdea: idea
+    });
+
+  } catch (error) {
+    console.error(
+      "[Generate Cover Idea]",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error?.message ||
+          "Gagal menjana idea kulit buku."
+      },
+      500
+    );
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -1610,6 +1802,21 @@ if (
     env,
     textHistoryMatch[1],
     textHistoryMatch[2]
+  );
+}
+
+const coverIdeaMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})\/cover-idea\/generate$/i
+);
+
+if (
+  coverIdeaMatch &&
+  request.method === "POST"
+) {
+  return generateCoverIdea(
+    request,
+    env,
+    coverIdeaMatch[1]
   );
 }
 
