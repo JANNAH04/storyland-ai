@@ -2320,6 +2320,8 @@ async function serveImageFromKV(
 }
 
 async function handleApi(request, env) {
+  const url = new URL(request.url);
+  const path = url.pathname;
   const kvImageMatch = path.match(
   /^\/api\/images\/([a-zA-Z0-9._-]+)$/
 );
@@ -2334,8 +2336,6 @@ if (
     kvImageMatch[1]
   );
 }
-  const url = new URL(request.url);
-  const path = url.pathname;
 
   if (!sameOriginAllowed(request)) {
     return json(
