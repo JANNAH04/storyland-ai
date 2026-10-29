@@ -315,6 +315,23 @@ async function getBooks(request, env) {
   }
 
   try {
+
+const needsBackup =
+  await shouldAutoBackup(
+    env,
+    book.id,
+    user.id
+  );
+
+if (needsBackup) {
+  await createBookBackup(
+    env,
+    book,
+    user.id,
+    "Backup Automatik"
+  );
+}
+
     const result = await env.DB.prepare(`
       SELECT
         id,
@@ -2249,7 +2266,74 @@ async function incrementImageUsage(env, userId) {
     .run();
 }
 
+async function serveImageFromKV(
+  request,
+  env,
+  imageKey
+) {
+  try {
+    const result = await env.IMAGES_KV.getWithMetadata(
+      imageKey,
+      {
+        type: "arrayBuffer"
+      }
+    );
+
+    if (!result?.value) {
+      return new Response(
+        "Gambar tidak dijumpai.",
+        {
+          status: 404
+        }
+      );
+    }
+
+    const contentType =
+      result.metadata?.contentType ||
+      "image/jpeg";
+
+    return new Response(
+      result.value,
+      {
+        status: 200,
+        headers: {
+          "Content-Type": contentType,
+          "Cache-Control":
+            "public, max-age=31536000, immutable"
+        }
+      }
+    );
+
+  } catch (error) {
+    console.error(
+      "[KV Image]",
+      error
+    );
+
+    return new Response(
+      "Gagal membaca gambar.",
+      {
+        status: 500
+      }
+    );
+  }
+}
+
 async function handleApi(request, env) {
+  const kvImageMatch = path.match(
+  /^\/api\/images\/([a-zA-Z0-9._-]+)$/
+);
+
+if (
+  kvImageMatch &&
+  request.method === "GET"
+) {
+  return serveImageFromKV(
+    request,
+    env,
+    kvImageMatch[1]
+  );
+}
   const url = new URL(request.url);
   const path = url.pathname;
 
