@@ -2,7 +2,9 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "storylandai",
   "main": "worker.js",
+  "account_id": "b165ae6764d735a6c3d77ee3a0137f58",
   "compatibility_date": "2026-10-27",
+
   "keep_vars": true,
 
   "assets": {
@@ -20,11 +22,9 @@
   ],
 
   "kv_namespaces": [
-  {
-    "binding": "IMAGES_KV",
-    "id": "91e40ccf37cf48db8d4b4c5f47315d3c"
-  }
-]
+    {
+      "binding": "IMAGES_KV",
+      "id": "ID_KV_AWAK"
+    }
+  ]
 }
-
-
