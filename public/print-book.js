@@ -183,23 +183,49 @@
   }
 
   function safeImage(url) {
-    if (typeof url !== 'string') {
-      return '';
-    }
+  if (
+    typeof url !== 'string' ||
+    !url.trim()
+  ) {
+    return '';
+  }
 
-    const value = url.trim();
+  const value = url.trim();
 
-    // Gambar daripada server aplikasi sendiri.
-    // Termasuk imej cover dan imej halaman.
+  if (value.startsWith('data:image/')) {
+    return value;
+  }
+
+  try {
+    const parsed = new URL(
+      value,
+      window.location.origin
+    );
 
     if (
-      !/^\/generated\/[a-f0-9-]+\/(?:characters\/)?[a-z0-9-]+\.(png|jpg|jpeg|webp)$/i.test(value)
+      parsed.origin !==
+      window.location.origin
     ) {
       return '';
     }
 
-    return window.location.origin + value;
+    if (
+      parsed.pathname.startsWith('/api/images/') ||
+      parsed.pathname.startsWith('/generated/')
+    ) {
+      return parsed.href;
+    }
+
+    return '';
+  } catch (error) {
+    console.error(
+      '[PDF Image URL]',
+      error
+    );
+
+    return '';
   }
+}
 
   function getPaper(size) {
     return String(size).toUpperCase() === 'A5'
@@ -649,11 +675,13 @@
       );
     }
 
-    const layout = pick(
-      page.layout,
-      VALID_LAYOUTS,
-      'side'
-    );
+    const layout = [
+  'full-top',
+  'full-center',
+  'full-bottom'
+].includes(page.layout)
+  ? page.layout
+  : 'full-bottom';
 
     if (FULL_LAYOUTS.includes(layout)) {
       return fullImagePage(
