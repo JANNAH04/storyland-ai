@@ -1971,6 +1971,133 @@ async function updateBook(request, env, bookId) {
   });
 }
 
+async function restoreImageHistory(
+  request,
+  env,
+  bookId,
+  target
+) {
+  const user = await getSessionUser(request, env);
+
+  if (!user) {
+    return json(
+      { error: "Sila log masuk terlebih dahulu." },
+      401
+    );
+  }
+
+  const body = await readJson(request);
+  const imageUrl = String(body?.imageUrl || "");
+
+  if (!imageUrl) {
+    return json(
+      { error: "URL gambar diperlukan." },
+      400
+    );
+  }
+
+  const book = await env.DB.prepare(`
+    SELECT *
+    FROM books
+    WHERE id = ?
+      AND owner_id = ?
+    LIMIT 1
+  `)
+    .bind(bookId, user.id)
+    .first();
+
+  if (!book) {
+    return json(
+      { error: "Buku tidak dijumpai." },
+      404
+    );
+  }
+
+  let story;
+
+  try {
+    story = JSON.parse(book.pages || "{}");
+  } catch {
+    return json(
+      { error: "Data buku rosak." },
+      500
+    );
+  }
+
+  ensureImageHistory(story);
+
+  const historyList =
+    getImageHistoryList(story, target);
+
+  if (!historyList.includes(imageUrl)) {
+    return json(
+      { error: "Gambar tiada dalam sejarah." },
+      400
+    );
+  }
+
+  const currentImage =
+    getCurrentImage(story, target);
+
+  // Buang gambar yang nak dipulihkan dari history
+  const index =
+    historyList.indexOf(imageUrl);
+
+  historyList.splice(index, 1);
+
+  // Simpan gambar semasa ke history
+  if (
+    currentImage &&
+    currentImage !== imageUrl
+  ) {
+    rememberOldImage(
+      story,
+      target,
+      currentImage
+    );
+  }
+
+  // Jadikan gambar lama sebagai gambar aktif
+  if (target === "cover") {
+    story.coverImageUrl = imageUrl;
+  } else {
+    const page = story.pages?.find(
+      p => Number(p.number) === Number(target)
+    );
+
+    if (!page) {
+      return json(
+        { error: "Halaman tidak dijumpai." },
+        404
+      );
+    }
+
+    page.imageUrl = imageUrl;
+  }
+
+  await env.DB.prepare(`
+    UPDATE books
+    SET pages = ?,
+        updated_at = ?,
+        revision = revision + 1
+    WHERE id = ?
+      AND owner_id = ?
+  `)
+    .bind(
+      JSON.stringify(story),
+      new Date().toISOString(),
+      bookId,
+      user.id
+    )
+    .run();
+
+  return json({
+    ok: true,
+    imageUrl,
+    history: historyList
+  });
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -2127,6 +2254,24 @@ if (
     imageHistoryMatch[1],
     decodeURIComponent(
       imageHistoryMatch[2]
+    )
+  );
+}
+
+const imageHistoryRestoreMatch = path.match(
+  /^\/api\/books\/([a-f0-9-]{36})\/image-history\/([^/]+)\/restore$/i
+);
+
+if (
+  imageHistoryRestoreMatch &&
+  request.method === "POST"
+) {
+  return restoreImageHistory(
+    request,
+    env,
+    imageHistoryRestoreMatch[1],
+    decodeURIComponent(
+      imageHistoryRestoreMatch[2]
     )
   );
 }
