@@ -980,20 +980,48 @@ async function generateImage(request, env, bookId) {
     }
 
     const base64 =
-      data?.result?.image;
+  data?.result?.image;
 
-    if (!base64) {
-      return json(
-        {
-          error:
-            "Cloudflare tidak memulangkan gambar."
-        },
-        502
-      );
+if (!base64) {
+  return json(
+    {
+      error:
+        "Cloudflare tidak memulangkan gambar."
+    },
+    502
+  );
+}
+
+const binaryString =
+  atob(base64);
+
+const bytes =
+  new Uint8Array(binaryString.length);
+
+for (
+  let i = 0;
+  i < binaryString.length;
+  i++
+) {
+  bytes[i] =
+    binaryString.charCodeAt(i);
+}
+
+const imageKey =
+  `${user.id}/${bookId}/${crypto.randomUUID()}.jpg`;
+
+await env.IMAGES_KV.put(
+  imageKey,
+  bytes.buffer,
+  {
+    metadata: {
+      contentType: "image/jpeg"
     }
+  }
+);
 
-    const imageUrl =
-      `data:image/jpeg;base64,${base64}`;
+const imageUrl =
+  `/api/images/${encodeURIComponent(imageKey)}`;
 
       ensureImageHistory(story);
 
@@ -2323,7 +2351,7 @@ async function handleApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
   const kvImageMatch = path.match(
-  /^\/api\/images\/([a-zA-Z0-9._-]+)$/
+  /^\/api\/images\/(.+)$/
 );
 
 if (
@@ -2331,10 +2359,12 @@ if (
   request.method === "GET"
 ) {
   return serveImageFromKV(
-    request,
-    env,
+  request,
+  env,
+  decodeURIComponent(
     kvImageMatch[1]
-  );
+  )
+);
 }
 
   if (!sameOriginAllowed(request)) {
