@@ -1029,6 +1029,11 @@ if (target === "cover") {
       )
       .run();
 
+
+    await incrementImageUsage(
+  env,
+  user.id
+);
     return json({
       ok: true,
       imageUrl
@@ -1060,6 +1065,33 @@ async function generatePageText(request, env, bookId, pageNumber) {
       401
     );
   }
+
+  const day = new Date().toISOString().slice(0, 10);
+
+const quotaRow = await env.DB.prepare(`
+  SELECT used
+  FROM image_daily_usage
+  WHERE user_id = ?
+    AND day = ?
+  LIMIT 1
+`)
+  .bind(user.id, day)
+  .first();
+
+const used = Number(quotaRow?.used || 0);
+const limit = Number(env.IMAGE_DAILY_LIMIT || 500);
+
+if (used >= limit) {
+  return json(
+    {
+      error: "Kuota gambar harian telah habis.",
+      used,
+      limit,
+      remaining: 0
+    },
+    429
+  );
+}
 
   const book = await env.DB.prepare(`
     SELECT *
@@ -2196,6 +2228,44 @@ async function getImageHistory(
       500
     );
   }
+}
+
+async function incrementImageUsage(env, userId) {
+  const day = new Date().toISOString().slice(0, 10);
+
+  await env.DB.prepare(`
+    INSERT INTO image_daily_usage (
+      user_id,
+      day,
+      used
+    )
+    VALUES (?, ?, 1)
+
+    ON CONFLICT(user_id, day)
+    DO UPDATE SET
+      used = used + 1
+  `)
+    .bind(userId, day)
+    .run();
+}
+
+async function incrementImageUsage(env, userId) {
+  const day = new Date().toISOString().slice(0, 10);
+
+  await env.DB.prepare(`
+    INSERT INTO image_daily_usage (
+      user_id,
+      day,
+      used
+    )
+    VALUES (?, ?, 1)
+
+    ON CONFLICT(user_id, day)
+    DO UPDATE SET
+      used = used + 1
+  `)
+    .bind(userId, day)
+    .run();
 }
 
 async function handleApi(request, env) {
