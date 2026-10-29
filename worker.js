@@ -1197,14 +1197,6 @@ async function getBooks(
   }
 
   try {
-    /*
-      PENTING:
-      Jangan SELECT pages di sini.
-
-      Buku lama mungkin masih
-      mengandungi gambar base64 besar.
-    */
-
     const result =
       await env.DB
         .prepare(`
@@ -1215,7 +1207,34 @@ async function getBooks(
             language,
             revision,
             created_at,
-            updated_at
+            updated_at,
+
+            json_array_length(
+              pages,
+              '$.pages'
+            ) AS page_count,
+
+            CASE
+              WHEN json_extract(
+                pages,
+                '$.coverImageUrl'
+              ) LIKE '/api/images/%'
+              THEN json_extract(
+                pages,
+                '$.coverImageUrl'
+              )
+
+              WHEN json_extract(
+                pages,
+                '$.coverImageUrl'
+              ) LIKE 'https://%'
+              THEN json_extract(
+                pages,
+                '$.coverImageUrl'
+              )
+
+              ELSE NULL
+            END AS cover_image_url
 
           FROM books
 
@@ -1247,15 +1266,14 @@ async function getBooks(
               language:
                 book.language,
 
-              /*
-                Sementara selamatkan
-                library daripada payload
-                gambar lama.
-              */
               pageCount:
-                0,
+                Number(
+                  book.page_count ||
+                  0
+                ),
 
               coverImageUrl:
+                book.cover_image_url ||
                 null,
 
               revision:
@@ -1285,6 +1303,7 @@ async function getBooks(
     return json(
       {
         error:
+          error?.message ||
           "Gagal membaca perpustakaan."
       },
       500
