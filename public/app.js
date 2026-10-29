@@ -3112,12 +3112,41 @@ if (printButton) {
    DASHBOARD REFRESH
    ====================================================== */
 
-$('refresh')?.addEventListener(
-  'click',
-  () => {
-    loadLibrary();
-  }
-);
+const refreshLibraryButton = $('refresh');
+
+if (refreshLibraryButton) {
+  refreshLibraryButton.disabled = false;
+
+  refreshLibraryButton.addEventListener(
+    'click',
+    async event => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      refreshLibraryButton.disabled = true;
+
+      const originalText =
+        refreshLibraryButton.textContent;
+
+      refreshLibraryButton.textContent =
+        '⏳ Memuatkan...';
+
+      try {
+        await loadLibrary();
+      } catch (error) {
+        console.error(
+          '[Refresh Library]',
+          error
+        );
+      } finally {
+        refreshLibraryButton.disabled = false;
+
+        refreshLibraryButton.textContent =
+          originalText;
+      }
+    }
+  );
+}
 
 /* ======================================================
    V18.6 — READING FONT SYNC

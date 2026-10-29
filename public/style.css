@@ -2032,3 +2032,18 @@ footer p { font-size: 12px; }
     font-size: clamp(14px, 3.5vw, 22px);
   }
 }
+/* ==========================================
+   FIX — MUAT SEMULA LIBRARY CLICKABLE
+   ========================================== */
+
+.library-heading {
+  position: relative;
+  z-index: 50;
+}
+
+#refresh {
+  position: relative;
+  z-index: 100;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
