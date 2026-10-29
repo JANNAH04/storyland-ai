@@ -972,6 +972,41 @@ async function generateImage(request, env, bookId) {
     const imageUrl =
       `data:image/jpeg;base64,${base64}`;
 
+      ensureImageHistory(story);
+
+const previousImage =
+  getCurrentImage(story, target);
+
+// Simpan gambar lama ke history sebelum overwrite
+if (
+  previousImage &&
+  previousImage !== imageUrl
+) {
+  rememberOldImage(
+    story,
+    target,
+    previousImage
+  );
+}
+
+// Letak gambar baru sebagai gambar aktif
+if (target === "cover") {
+  story.coverImageUrl = imageUrl;
+} else {
+  const page = story.pages.find(
+    p => Number(p.number) === Number(target)
+  );
+
+  if (!page) {
+    return json(
+      { error: "Halaman tidak dijumpai." },
+      404
+    );
+  }
+
+  page.imageUrl = imageUrl;
+}
+
     if (target === "cover") {
       story.coverImageUrl = imageUrl;
     } else {
