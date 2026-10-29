@@ -315,30 +315,12 @@ async function getBooks(request, env) {
   }
 
   try {
-
-const needsBackup =
-  await shouldAutoBackup(
-    env,
-    book.id,
-    user.id
-  );
-
-if (needsBackup) {
-  await createBookBackup(
-    env,
-    book,
-    user.id,
-    "Backup Automatik"
-  );
-}
-
     const result = await env.DB.prepare(`
       SELECT
         id,
         title,
         age,
         language,
-        pages,
         revision,
         created_at,
         updated_at
@@ -350,37 +332,43 @@ if (needsBackup) {
       .bind(user.id)
       .all();
 
-    const books = (result.results || []).map(book => {
-      let story = {};
+    const books =
+      Array.isArray(result.results)
+        ? result.results.map(book => ({
+            id: book.id,
+            title: book.title,
+            age: book.age,
+            language: book.language,
 
-      try {
-        story = JSON.parse(book.pages || "{}");
-      } catch {
-        story = {};
-      }
+            // sementara jangan baca pages
+            pageCount: 0,
+            coverImageUrl: null,
 
-      return {
-        id: book.id,
-        title: book.title,
-        age: book.age,
-        language: book.language,
-        pageCount: Array.isArray(story.pages)
-          ? story.pages.length
-          : 0,
-        coverImageUrl: story.coverImageUrl || null,
-        revision: book.revision,
-        created_at: book.created_at,
-        updated_at: book.updated_at
-      };
-    });
+            revision:
+              Number(book.revision || 1),
+
+            created_at:
+              book.created_at,
+
+            updated_at:
+              book.updated_at
+          }))
+        : [];
 
     return json(books);
 
   } catch (error) {
-    console.error("[Books]", error);
+    console.error(
+      "[Perpustakaan]",
+      error
+    );
 
     return json(
-      { error: "Gagal membaca perpustakaan." },
+      {
+        error:
+          error?.message ||
+          "Gagal membaca perpustakaan."
+      },
       500
     );
   }
