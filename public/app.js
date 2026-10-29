@@ -23,13 +23,6 @@ let selected = null;
 const MAX_WORDS = 100;
 const MIN_WORDS = 5;
 
-const LAYOUTS = [
-  
-  ['full-top', 'Gambar Penuh + Teks Atas'],
-  ['full-center', 'Gambar Penuh + Teks Tengah'],
-  ['full-bottom', 'Gambar Penuh + Teks Bawah']
-];
-
 const THEMES = [
   ['fantasy', '✨ Dunia Fantasi'],
   ['garden', '🌸 Taman Ceria'],
@@ -2521,14 +2514,8 @@ updateButtons = () => {
 
 updateButtons();
 
-tools.append(
-  el(
-    'div',
-    'visual-tools-heading',
-    '📖 Susun Atur Halaman'
-  ),
-  buttons
-);
+// Panel butang Susun Atur Halaman dibuang.
+// Dropdown layout asal dikekalkan.
 
 
   /* ==========================================
@@ -2702,8 +2689,6 @@ details.addEventListener(
     ),
 
     body,
-
-    tools,
 
     smartLayoutPanel,
 
