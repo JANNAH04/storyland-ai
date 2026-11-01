@@ -2558,113 +2558,6 @@ updateButtons();
         }
       }) || el('div');
 
-  /* ==========================================
-     GEMINI ILLUSTRATION IDEA
-     ========================================== */
-
-  
-/* ==========================================
-   STORYLAND AI V19.5
-   IDEA ILUSTRASI BAHASA MELAYU
-   ========================================== */
-
-const details = el('details');
-
-const ideaTitle = el(
-  'summary',
-  '',
-  '💬 Idea Ilustrasi dalam Bahasa Melayu'
-);
-
-const ideaText = el(
-  'p',
-  'storyland-idea-malay',
-  ''
-);
-
-details.append(
-  ideaTitle,
-  ideaText
-);
-
-let translatedSource = '';
-let translating = false;
-
-async function loadMalayIdea() {
-  const source = String(
-    page.illustrationPrompt || ''
-  ).trim();
-
-  if (!source) {
-    ideaText.textContent =
-      'Belum ada idea ilustrasi.';
-    return;
-  }
-
-  // Jangan terjemah semula idea yang sama.
-  if (translatedSource === source) {
-    return;
-  }
-
-  if (translating) return;
-
-  translating = true;
-  ideaText.textContent =
-    '⏳ Sedang menterjemah idea ilustrasi...';
-
-  try {
-    const result = await api(
-      `/api/books/${encodeURIComponent(bookId)}` +
-      `/pages/${number}/translate-idea`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          text: source
-        })
-      }
-    );
-
-    if (!result.translation) {
-      throw new Error(
-        'Gemini tidak memulangkan terjemahan.'
-      );
-    }
-
-    // Elakkan terjemahan lama jika idea berubah.
-    if (
-      source !== String(
-        page.illustrationPrompt || ''
-      ).trim()
-    ) {
-      return;
-    }
-
-    ideaText.textContent =
-      result.translation;
-
-    translatedSource = source;
-
-  } catch (error) {
-    ideaText.textContent =
-      '❌ ' + error.message;
-
-  } finally {
-    translating = false;
-  }
-}
-
-details.addEventListener(
-  'toggle',
-  () => {
-    if (details.open) {
-      loadMalayIdea();
-    }
-  }
-);
-
 
   /* ==========================================
      FINISH PAGE
@@ -2687,9 +2580,7 @@ details.addEventListener(
 
     body,
 
-    smartLayoutPanel,
-
-    details
+    smartLayoutPanel
   );
 
   return section;
