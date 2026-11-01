@@ -3691,30 +3691,37 @@ console.log(
 );
 /* ======================================================
    KEMASKAN UMUR + BAHASA + BILANGAN MUKA SURAT
+   TANPA PINDAHKAN DOM
    ====================================================== */
 
-function tidyStorySettings() {
+function tidyStorySettingsSafe() {
   const selects =
     [...document.querySelectorAll('select')];
 
   const ageSelect =
     selects.find(select =>
       [...select.options].some(option =>
-        /6.?8 tahun/i.test(option.textContent || '')
+        /6.?8 tahun/i.test(
+          option.textContent || ''
+        )
       )
     );
 
   const languageSelect =
     selects.find(select =>
       [...select.options].some(option =>
-        /Bahasa Melayu/i.test(option.textContent || '')
+        /Bahasa Melayu/i.test(
+          option.textContent || ''
+        )
       )
     );
 
   const pageSelect =
     selects.find(select =>
       [...select.options].some(option =>
-        /20 Muka Surat/i.test(option.textContent || '')
+        /Muka Surat/i.test(
+          option.textContent || ''
+        )
       )
     );
 
@@ -3723,26 +3730,21 @@ function tidyStorySettings() {
     !languageSelect ||
     !pageSelect
   ) {
-    console.warn(
-      '[Story Settings] Dropdown tidak dijumpai.'
-    );
     return;
   }
 
-  const getField = select =>
-    select.closest(
-      '.form-group, .field, label'
-    ) ||
-    select.parentElement;
-
+  /*
+    Guna wrapper asal sahaja.
+    TIDAK memindahkan mana-mana elemen.
+  */
   const ageField =
-    getField(ageSelect);
+    ageSelect.parentElement;
 
   const languageField =
-    getField(languageSelect);
+    languageSelect.parentElement;
 
   const pageField =
-    getField(pageSelect);
+    pageSelect.parentElement;
 
   if (
     !ageField ||
@@ -3753,44 +3755,38 @@ function tidyStorySettings() {
   }
 
   /*
-    Jangan create grid berulang kali.
+    Ketiga-tiga field sepatutnya
+    berada dalam parent yang sama.
   */
+  const container =
+    ageField.parentElement;
+
   if (
-    ageField.closest(
-      '.story-settings-grid'
-    )
+    container &&
+    languageField.parentElement ===
+      container &&
+    pageField.parentElement ===
+      container
   ) {
-    return;
+    container.classList.add(
+      'story-settings-clean'
+    );
+
+    ageField.classList.add(
+      'story-setting-field'
+    );
+
+    languageField.classList.add(
+      'story-setting-field'
+    );
+
+    pageField.classList.add(
+      'story-setting-field'
+    );
   }
-
-  const grid =
-    document.createElement('div');
-
-  grid.className =
-    'story-settings-grid';
-
-  /*
-    Letak grid pada posisi
-    field Umur sekarang.
-  */
-  ageField.parentNode.insertBefore(
-    grid,
-    ageField
-  );
-
-  grid.append(
-    ageField,
-    languageField,
-    pageField
-  );
 }
 
 setTimeout(
-  tidyStorySettings,
-  300
-);
-
-setTimeout(
-  tidyStorySettings,
-  1000
+  tidyStorySettingsSafe,
+  500
 );

@@ -2082,50 +2082,44 @@ button {
   cursor: pointer;
 }
 /* =========================================
-   UMUR + BAHASA + MUKA SURAT
+   STORY SETTINGS — KEMAS 3 KOLOM
    ========================================= */
 
-.story-settings-grid {
-  display: grid;
+.story-settings-clean {
+  display: grid !important;
   grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  align-items: end;
-  width: 100%;
-  margin-top: 12px;
-  margin-bottom: 14px;
+    repeat(3, minmax(0, 1fr)) !important;
+
+  gap: 10px !important;
+  align-items: end !important;
+  width: 100% !important;
 }
 
-.story-settings-grid > * {
+.story-settings-clean
+.story-setting-field {
   width: 100% !important;
   min-width: 0 !important;
   margin: 0 !important;
 }
 
-.story-settings-grid select {
-  display: block;
+.story-settings-clean
+.story-setting-field select {
   width: 100% !important;
   min-width: 0 !important;
-  height: 42px;
-  box-sizing: border-box;
+  height: 42px !important;
+  box-sizing: border-box !important;
 }
 
-/* Pastikan label tak pecah pelik */
-.story-settings-grid label {
-  width: 100%;
-}
-
-/* Mobile */
-@media (max-width: 600px) {
-  .story-settings-grid {
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
-    gap: 6px;
+/* Telefon */
+@media (max-width: 520px) {
+  .story-settings-clean {
+    gap: 6px !important;
   }
 
-  .story-settings-grid select {
-    padding-left: 8px;
-    padding-right: 22px;
-    font-size: 12px;
+  .story-settings-clean
+  .story-setting-field select {
+    font-size: 11px !important;
+    padding-left: 7px !important;
+    padding-right: 18px !important;
   }
 }
