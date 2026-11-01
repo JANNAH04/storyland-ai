@@ -2122,4 +2122,28 @@ button {
 
   font-size: 11px !important;
   box-sizing: border-box !important;
+}/* FIX KHAS — DROPDOWN BILANGAN MUKA SURAT */
+
+.three {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  align-items: start !important;
+}
+
+/* Dropdown Bilangan Muka Surat yang terpisah */
+.three > select {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+
+  align-self: end !important;
+
+  width: 100% !important;
+  height: 40px !important;
+
+  margin-top: 30px !important;
+
+  padding: 7px 5px !important;
+  font-size: 11px !important;
 }
