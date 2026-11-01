@@ -2082,86 +2082,44 @@ button {
   cursor: pointer;
 }
 /* =========================================
-   STORY SETTINGS — KEMAS 3 KOLOM
+   FIX UMUR + BAHASA + BILANGAN MUKA SURAT
    ========================================= */
 
-.story-settings-clean {
+.three {
   display: grid !important;
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr)) !important;
-
-  gap: 10px !important;
-  align-items: end !important;
-  width: 100% !important;
-}
-
-.story-settings-clean
-.story-setting-field {
-  width: 100% !important;
-  min-width: 0 !important;
-  margin: 0 !important;
-}
-
-.story-settings-clean
-.story-setting-field select {
-  width: 100% !important;
-  min-width: 0 !important;
-  height: 42px !important;
-  box-sizing: border-box !important;
-}
-
-/* Telefon */
-@media (max-width: 520px) {
-  .story-settings-clean {
-    gap: 6px !important;
-  }
-
-  .story-settings-clean
-  .story-setting-field select {
-    font-size: 11px !important;
-    padding-left: 7px !important;
-    padding-right: 18px !important;
-  }
-}/* Susun 3 pilihan dalam satu baris */
-.story-settings-clean {
-  display: grid !important;
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 8px !important;
   align-items: start !important;
 }
 
-/* Paksa field Bilangan Muka Surat naik */
-.story-settings-clean
-.story-setting-field {
-  align-self: start !important;
-  margin-top: 0 !important;
-}
+.three label {
+  display: grid !important;
 
-/* Label jangan terlalu tinggi */
-.story-settings-clean
-.story-setting-field label,
-.story-settings-clean
-.story-setting-field > span,
-.story-settings-clean
-.story-setting-field > div:first-child {
+  /*
+    Baris pertama = tajuk
+    Baris kedua = dropdown
+  */
+  grid-template-rows: 30px 40px !important;
+
+  align-content: start !important;
+  margin-top: 15px !important;
+
+  min-width: 0 !important;
+  width: 100% !important;
+
   line-height: 1.1 !important;
-  min-height: 28px !important;
-  margin-bottom: 4px !important;
+  font-size: 11px !important;
 }
 
-/* Dropdown semua sama tinggi */
-.story-settings-clean select {
+.three select {
+  width: 100% !important;
   height: 40px !important;
-  margin-top: 0 !important;
-}.story-settings-clean
-.story-setting-field:nth-child(3) {
-  position: relative;
-  top: 0 !important;
-}
 
-.story-settings-clean
-.story-setting-field:nth-child(3)
-select {
-  margin-top: -2px !important;
+  min-width: 0 !important;
+
+  margin-top: 0 !important;
+  padding: 7px 5px !important;
+
+  font-size: 11px !important;
+  box-sizing: border-box !important;
 }
