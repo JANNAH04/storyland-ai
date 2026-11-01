@@ -2834,45 +2834,46 @@ Return:
     }
 
     for (
-      let i = 0;
-      i <
-      generated.pages.length;
-      i++
-    ) {
-      const page =
-        generated.pages[i];
+  let i = 0;
+  i < generated.pages.length;
+  i++
+) {
+  const page =
+    generated.pages[i];
 
-      if (
-        Number(
-          page.number
-        ) !==
-          i + 1 ||
+  const pageWordCount =
+    countWords(
+      page.text
+    );
 
-        typeof page.text !==
-          "string" ||
+  if (
+    Number(
+      page.number
+    ) !==
+      i + 1 ||
 
-        !page.text.trim() ||
+    typeof page.text !==
+      "string" ||
 
-        countWords(
+    !page.text.trim() ||
 
-        pageWordCount < 50 ||
-        page.text
-      ) > 120 ||
+    pageWordCount < 50 ||
 
-        typeof
-          page
-            .illustrationPrompt !==
-          "string"
-      ) {
-        return json(
-          {
-            error:
-              "Format halaman daripada Gemini tidak sah."
-          },
-          422
-        );
-      }
-    }
+    pageWordCount > 120 ||
+
+    typeof
+      page.illustrationPrompt !==
+      "string"
+  ) {
+    return json(
+      {
+        error:
+          "AI tidak menghasilkan cerita panjang yang sah untuk setiap halaman."
+      },
+      422
+    );
+  }
+}
 
     const story =
       normalizeStory({
