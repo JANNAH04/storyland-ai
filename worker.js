@@ -2857,18 +2857,18 @@ Return:
 
     !page.text.trim() ||
 
-    pageWordCount < 50 ||
-
-    pageWordCount > 120 ||
+    pageWordCount > 140 ||
 
     typeof
       page.illustrationPrompt !==
-      "string"
+      "string" ||
+
+    !page.illustrationPrompt.trim()
   ) {
     return json(
       {
         error:
-          "AI tidak menghasilkan cerita panjang yang sah untuk setiap halaman."
+          "AI menghasilkan format halaman yang tidak sah."
       },
       422
     );
