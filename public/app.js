@@ -3350,6 +3350,117 @@ window.StorylandAppDebug = {
   openBook
 };
 
+document.addEventListener(
+  'click',
+  event => {
+    const button =
+      event.target.closest('button');
+
+    if (!button) return;
+
+    const label =
+      String(
+        button.textContent || ''
+      ).trim();
+
+    if (
+      !label.includes(
+        'Pratonton Buku'
+      )
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!selected?.pages) {
+      message(
+        '❌ Tiada buku dipilih untuk pratonton.'
+      );
+      return;
+    }
+
+    if (
+      !window.StorylandPrint
+        ?.buildDocument
+    ) {
+      message(
+        '❌ Modul pratonton belum tersedia.'
+      );
+
+      console.error(
+        '[Preview]',
+        'StorylandPrint.buildDocument tiada',
+        window.StorylandPrint
+      );
+
+      return;
+    }
+
+    try {
+      const size =
+        document.querySelector(
+          '#bookSize'
+        )?.value ||
+
+        document.querySelector(
+          '[name="bookSize"]'
+        )?.value ||
+
+        'A4';
+
+      const printable =
+        window.StorylandPrint
+          .buildDocument(
+            selected.pages,
+            size
+          );
+
+      const previewWindow =
+        window.open(
+          '',
+          '_blank',
+          'width=1100,height=900'
+        );
+
+      if (!previewWindow) {
+        window.alert(
+          'Pop-up disekat. Benarkan pop-up untuk Storyland AI.'
+        );
+        return;
+      }
+
+      previewWindow.document.open();
+
+      previewWindow.document.write(
+        printable
+      );
+
+      previewWindow.document.close();
+
+      previewWindow.focus();
+
+      console.log(
+        '[Preview]',
+        'Pratonton buku berjaya dibuka.'
+      );
+
+    } catch (error) {
+      console.error(
+        '[Preview Error]',
+        error
+      );
+
+      message(
+        '❌ Gagal membuka pratonton: ' +
+        error.message
+      );
+    }
+  },
+  true
+);
+
 console.log(
   'Storyland AI App V18.6 Ready'
 );
