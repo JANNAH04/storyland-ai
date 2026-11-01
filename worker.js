@@ -2291,6 +2291,120 @@ function normalizeLanguage(
 }
 
 
+async function callCloudflareTextJSON(
+  env,
+  prompt,
+  temperature = 0.7
+) {
+  if (
+    !env.CLOUDFLARE_ACCOUNT_ID ||
+    !env.CLOUDFLARE_API_TOKEN
+  ) {
+    throw new Error(
+      "Cloudflare Workers AI belum dikonfigurasi."
+    );
+  }
+
+  const model =
+    env.CLOUDFLARE_TEXT_MODEL ||
+    "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+
+  const response =
+    await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(
+        env.CLOUDFLARE_ACCOUNT_ID
+      )}/ai/v1/chat/completions`,
+      {
+        method: "POST",
+
+        headers: {
+          Authorization:
+            `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+
+          "Content-Type":
+            "application/json"
+        },
+
+        body: JSON.stringify({
+          model,
+
+          messages: [
+            {
+              role: "system",
+              content:
+                "Return valid JSON only. Do not use Markdown."
+            },
+
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+
+          temperature
+        })
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if (!response.ok) {
+    console.error(
+      "[Cloudflare Text AI]",
+      data
+    );
+
+    throw new Error(
+      data?.errors?.[0]?.message ||
+      data?.error ||
+      `Cloudflare AI HTTP ${response.status}`
+    );
+  }
+
+  const raw =
+    data?.choices?.[0]
+      ?.message?.content;
+
+  if (!raw) {
+    throw new Error(
+      "Cloudflare AI tidak memulangkan jawapan."
+    );
+  }
+
+  const cleaned =
+    String(raw)
+      .trim()
+      .replace(
+        /^```json\s*/i,
+        ""
+      )
+      .replace(
+        /^```\s*/i,
+        ""
+      )
+      .replace(
+        /\s*```$/i,
+        ""
+      );
+
+  try {
+    return JSON.parse(cleaned);
+
+  } catch (error) {
+    console.error(
+      "[Cloudflare JSON Parse]",
+      raw,
+      error
+    );
+
+    throw new Error(
+      "Format jawapan Cloudflare AI tidak sah."
+    );
+  }
+}
+
+
 async function callGeminiJSON(
   env,
   prompt,
@@ -2321,37 +2435,34 @@ async function callGeminiJSON(
       ),
 
       {
-        method:
-          "POST",
+        method: "POST",
 
         headers: {
           "Content-Type":
             "application/json"
         },
 
-        body:
-          JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text:
-                      prompt
-                  }
-                ]
-              }
-            ],
-
-            generationConfig: {
-              responseMimeType:
-                "application/json",
-
-              temperature,
-
-              maxOutputTokens:
-                32768
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
             }
-          })
+          ],
+
+          generationConfig: {
+            responseMimeType:
+              "application/json",
+
+            temperature,
+
+            maxOutputTokens:
+              32768
+          }
+        })
       }
     );
 
@@ -2359,20 +2470,52 @@ async function callGeminiJSON(
     await response.json();
 
   if (!response.ok) {
-    throw new Error(
+    const message =
       data?.error?.message ||
-      `Gemini HTTP ${response.status}`
+      `Gemini HTTP ${response.status}`;
+
+    console.error(
+      "[Gemini]",
+      data
     );
+
+    const locationBlocked =
+      /user location is not supported/i
+        .test(message) ||
+
+      /failed_precondition/i
+        .test(
+          String(
+            data?.error?.status ||
+            ""
+          )
+        );
+
+    if (locationBlocked) {
+      console.warn(
+        "[Gemini Fallback]",
+        "Location blocked. Using Cloudflare Workers AI."
+      );
+
+      return await callCloudflareTextJSON(
+        env,
+        prompt,
+        temperature
+      );
+    }
+
+    throw new Error(message);
   }
 
   const raw =
-    data
-      ?.candidates
-      ?.[0]
-      ?.content
-      ?.parts
-      ?.[0]
-      ?.text;
+    data?.candidates?.[0]
+      ?.content?.parts
+      ?.map(
+        part =>
+          part?.text || ""
+      )
+      .join("")
+      .trim();
 
   if (!raw) {
     throw new Error(
@@ -2380,17 +2523,34 @@ async function callGeminiJSON(
     );
   }
 
-  try {
-    return JSON.parse(raw);
+  const cleaned =
+    raw
+      .replace(
+        /^```json\s*/i,
+        ""
+      )
+      .replace(
+        /^```\s*/i,
+        ""
+      )
+      .replace(
+        /\s*```$/i,
+        ""
+      )
+      .trim();
 
-  } catch {
+  try {
+    return JSON.parse(cleaned);
+
+  } catch (error) {
     console.error(
-      "[Gemini JSON]",
-      raw
+      "[Gemini JSON Parse]",
+      raw,
+      error
     );
 
     throw new Error(
-      "Format jawapan Gemini tidak sah."
+      "Format JSON daripada Gemini tidak sah."
     );
   }
 }
@@ -4713,7 +4873,7 @@ Return:
       return json(
         {
           error:
-            "Gemini tidak memulangkan teks yang sah."
+            "AI tidak memulangkan teks yang sah."
         },
         502
       );
