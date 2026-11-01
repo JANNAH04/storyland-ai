@@ -5704,6 +5704,153 @@ async function restoreBookBackup(
   }
 }
 
+async function duplicateBook(
+  request,
+  env,
+  bookId
+) {
+  const user =
+    await getSessionUser(
+      request,
+      env
+    );
+
+  if (!user) {
+    return json(
+      {
+        error:
+          "Sila log masuk terlebih dahulu."
+      },
+      401
+    );
+  }
+
+  try {
+    const source =
+      await env.DB
+        .prepare(`
+          SELECT *
+
+          FROM books
+
+          WHERE
+            id = ?
+
+            AND
+            owner_id = ?
+
+          LIMIT 1
+        `)
+
+        .bind(
+          bookId,
+          user.id
+        )
+
+        .first();
+
+    if (!source) {
+      return json(
+        {
+          error:
+            "Buku tidak dijumpai."
+        },
+        404
+      );
+    }
+
+    const story =
+      normalizeStory(
+        JSON.parse(
+          source.pages || "{}"
+        )
+      );
+
+    const newId =
+      crypto.randomUUID();
+
+    const newTitle =
+      `${source.title} (Salinan)`;
+
+    story.title =
+      newTitle;
+
+    /*
+      Gambar KV boleh dikongsi oleh salinan.
+      Kita hanya salin URL gambar, bukan
+      binary gambar sekali lagi.
+    */
+
+    const timestamp =
+      new Date()
+        .toISOString();
+
+    await env.DB
+      .prepare(`
+        INSERT INTO books (
+          id,
+          title,
+          idea,
+          age,
+          language,
+          pages,
+          created_at,
+          updated_at,
+          owner_id,
+          revision
+        )
+
+        VALUES (
+          ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, 1
+        )
+      `)
+
+      .bind(
+        newId,
+        newTitle,
+
+        source.idea || "",
+
+        source.age || "",
+
+        source.language ||
+          "Bahasa Melayu",
+
+        JSON.stringify(
+          story
+        ),
+
+        timestamp,
+        timestamp,
+        user.id
+      )
+
+      .run();
+
+    return json({
+      ok: true,
+      id: newId,
+      title: newTitle
+    });
+
+  } catch (error) {
+    console.error(
+      "[Duplicate Book]",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error?.message ||
+          "Gagal menyalin buku."
+      },
+      500
+    );
+  }
+}
+
 async function deleteBook(
   request,
   env,
@@ -6111,6 +6258,26 @@ async function handleApi(
   );
 }
 
+
+/* ----------------------------------------------------------
+   DUPLICATE BOOK
+   ---------------------------------------------------------- */
+
+const duplicateBookMatch =
+  path.match(
+    /^\/api\/books\/([a-f0-9-]{36})\/duplicate$/i
+  );
+
+if (
+  duplicateBookMatch &&
+  request.method === "POST"
+) {
+  return duplicateBook(
+    request,
+    env,
+    duplicateBookMatch[1]
+  );
+}
 
   /* ----------------------------------------------------------
      GENERATE IMAGE
