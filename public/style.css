@@ -2154,4 +2154,14 @@ button {
 .story-settings-clean select {
   height: 40px !important;
   margin-top: 0 !important;
+}.story-settings-clean
+.story-setting-field:nth-child(3) {
+  position: relative;
+  top: 0 !important;
+}
+
+.story-settings-clean
+.story-setting-field:nth-child(3)
+select {
+  margin-top: -2px !important;
 }
