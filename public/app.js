@@ -3461,6 +3461,171 @@ document.addEventListener(
   true
 );
 
+/* ======================================================
+   FORCE FIX — PRATONTON BUKU
+   ====================================================== */
+
+function fixPreviewButton() {
+  const buttons =
+    [...document.querySelectorAll('button')];
+
+  const previewButton =
+    buttons.find(
+      button =>
+        String(
+          button.textContent || ''
+        )
+          .trim()
+          .includes(
+            'Pratonton Buku'
+          )
+    );
+
+  if (!previewButton) {
+    return;
+  }
+
+  /*
+    Pastikan button memang boleh ditekan.
+  */
+  previewButton.disabled = false;
+
+  previewButton.removeAttribute(
+    'disabled'
+  );
+
+  previewButton.style.pointerEvents =
+    'auto';
+
+  previewButton.style.opacity =
+    '1';
+
+  previewButton.style.cursor =
+    'pointer';
+
+  previewButton.onclick = () => {
+    console.log(
+      '[Preview Button]',
+      'CLICKED'
+    );
+
+    if (!selected?.pages) {
+      message(
+        '❌ Tiada buku dipilih.'
+      );
+      return;
+    }
+
+    if (
+      !window.StorylandPrint ||
+      typeof
+        window.StorylandPrint
+          .buildDocument !==
+        'function'
+    ) {
+      message(
+        '❌ Modul pratonton buku tidak tersedia.'
+      );
+
+      console.error(
+        '[Preview]',
+        window.StorylandPrint
+      );
+
+      return;
+    }
+
+    try {
+      const size =
+        document.querySelector(
+          '#bookSize'
+        )?.value ||
+
+        document.querySelector(
+          '[name="bookSize"]'
+        )?.value ||
+
+        'A4';
+
+      const html =
+        window.StorylandPrint
+          .buildDocument(
+            selected.pages,
+            size
+          );
+
+      const popup =
+        window.open(
+          '',
+          'storyland_preview',
+          'width=1100,height=900'
+        );
+
+      if (!popup) {
+        alert(
+          'Pop-up disekat oleh browser. Benarkan pop-up untuk Storyland AI.'
+        );
+        return;
+      }
+
+      popup.document.open();
+
+      popup.document.write(
+        html
+      );
+
+      popup.document.close();
+
+      popup.focus();
+
+    } catch (error) {
+      console.error(
+        '[Preview Error]',
+        error
+      );
+
+      message(
+        '❌ Gagal membuka pratonton: ' +
+        error.message
+      );
+    }
+  };
+}
+
+
+/*
+  Run selepas editor render.
+*/
+setTimeout(
+  fixPreviewButton,
+  500
+);
+
+setTimeout(
+  fixPreviewButton,
+  1500
+);
+
+
+/*
+  Button mungkin dirender semula,
+  jadi pantau DOM.
+*/
+const previewObserver =
+  new MutationObserver(
+    () => {
+      fixPreviewButton();
+    }
+  );
+
+previewObserver.observe(
+  document.body,
+  {
+    childList: true,
+    subtree: true
+  }
+);
+
 console.log(
   'Storyland AI App V18.6 Ready'
 );

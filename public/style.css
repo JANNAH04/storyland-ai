@@ -2074,3 +2074,10 @@ footer p { font-size: 12px; }
 details:has(.storyland-idea-malay) {
   display: none !important;
 }
+button:not(:disabled) {
+  pointer-events: auto;
+}
+
+button {
+  cursor: pointer;
+}
