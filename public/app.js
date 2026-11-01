@@ -430,23 +430,31 @@ async function openBook(id) {
     // Draft recovery must run only after book
     // and Auto-Save have been initialized.
     window.StorylandDraftRecovery?.attach?.(
-      selected,
-      () => {
-        renderEditor();
+  selected,
+  () => {
+    renderEditor();
 
-        bindUndoRedo();
+    bindUndoRedo();
 
-        refreshQualityChecker();
+    refreshQualityChecker();
 
-        window.StorylandAutosave
-          ?.changed?.();
+    window.StorylandAutosave
+      ?.changed?.();
 
-        message(
-          '✅ Draf dipulihkan. ' +
-          'Simpan buku untuk kekalkan perubahan.'
-        );
-      }
+    document.querySelectorAll(
+      '.storyland-draft-recovery-panel, ' +
+      '.draft-recovery-panel, ' +
+      '[data-storyland-draft-recovery]'
+    ).forEach(
+      panel => panel.remove()
     );
+
+    message(
+      '✅ Draf dipulihkan. ' +
+      'Simpan buku untuk kekalkan perubahan.'
+    );
+  }
+);
 
     return true;
 
