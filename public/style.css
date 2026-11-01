@@ -2066,3 +2066,11 @@ footer p { font-size: 12px; }
   opacity: 1 !important;
   visibility: visible !important;
 }
+
+/* =========================================================
+   HIDE IDEA ILUSTRASI BAHASA MELAYU
+   ========================================================= */
+
+details:has(.storyland-idea-malay) {
+  display: none !important;
+}
