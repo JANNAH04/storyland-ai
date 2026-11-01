@@ -2081,3 +2081,51 @@ button:not(:disabled) {
 button {
   cursor: pointer;
 }
+/* =========================================
+   UMUR + BAHASA + MUKA SURAT
+   ========================================= */
+
+.story-settings-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+  width: 100%;
+  margin-top: 12px;
+  margin-bottom: 14px;
+}
+
+.story-settings-grid > * {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.story-settings-grid select {
+  display: block;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 42px;
+  box-sizing: border-box;
+}
+
+/* Pastikan label tak pecah pelik */
+.story-settings-grid label {
+  width: 100%;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .story-settings-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .story-settings-grid select {
+    padding-left: 8px;
+    padding-right: 22px;
+    font-size: 12px;
+  }
+}

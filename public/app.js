@@ -3689,3 +3689,108 @@ previewObserver.observe(
 console.log(
   'Storyland AI App V18.6 Ready'
 );
+/* ======================================================
+   KEMASKAN UMUR + BAHASA + BILANGAN MUKA SURAT
+   ====================================================== */
+
+function tidyStorySettings() {
+  const selects =
+    [...document.querySelectorAll('select')];
+
+  const ageSelect =
+    selects.find(select =>
+      [...select.options].some(option =>
+        /6.?8 tahun/i.test(option.textContent || '')
+      )
+    );
+
+  const languageSelect =
+    selects.find(select =>
+      [...select.options].some(option =>
+        /Bahasa Melayu/i.test(option.textContent || '')
+      )
+    );
+
+  const pageSelect =
+    selects.find(select =>
+      [...select.options].some(option =>
+        /20 Muka Surat/i.test(option.textContent || '')
+      )
+    );
+
+  if (
+    !ageSelect ||
+    !languageSelect ||
+    !pageSelect
+  ) {
+    console.warn(
+      '[Story Settings] Dropdown tidak dijumpai.'
+    );
+    return;
+  }
+
+  const getField = select =>
+    select.closest(
+      '.form-group, .field, label'
+    ) ||
+    select.parentElement;
+
+  const ageField =
+    getField(ageSelect);
+
+  const languageField =
+    getField(languageSelect);
+
+  const pageField =
+    getField(pageSelect);
+
+  if (
+    !ageField ||
+    !languageField ||
+    !pageField
+  ) {
+    return;
+  }
+
+  /*
+    Jangan create grid berulang kali.
+  */
+  if (
+    ageField.closest(
+      '.story-settings-grid'
+    )
+  ) {
+    return;
+  }
+
+  const grid =
+    document.createElement('div');
+
+  grid.className =
+    'story-settings-grid';
+
+  /*
+    Letak grid pada posisi
+    field Umur sekarang.
+  */
+  ageField.parentNode.insertBefore(
+    grid,
+    ageField
+  );
+
+  grid.append(
+    ageField,
+    languageField,
+    pageField
+  );
+}
+
+setTimeout(
+  tidyStorySettings,
+  300
+);
+
+setTimeout(
+  tidyStorySettings,
+  1000
+);
