@@ -4954,7 +4954,7 @@ ${instructions || "Improve this page naturally."}
 STRICT RULES:
 - Write only replacement story text.
 - Minimum 5 words.
-- Maximum 35 words.
+- Maximum 100 words.
 - Use the selected story language.
 - Maintain character names and personality.
 - Maintain continuity with previous and next pages.
@@ -5006,7 +5006,7 @@ Return exactly:
       if (
         generatedText &&
         words >= 5 &&
-        words <= 35
+        words <= 100
       ) {
         break;
       }
@@ -5025,7 +5025,7 @@ Return exactly:
       return json(
         {
           error:
-            "AI tidak menghasilkan teks mengikut had 35 perkataan."
+            "AI tidak menghasilkan teks mengikut had 100 perkataan."
         },
         422
       );
