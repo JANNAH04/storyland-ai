@@ -2673,14 +2673,38 @@ async function generateAutoStoryImage(
           .join(" ")
 
       : [
-          "Premium children's picture book illustration.",
-          "Whimsical, polished, colorful, expressive and child-friendly.",
-          "Keep recurring characters visually consistent across pages.",
-          respectfulRule,
-          prompt,
-          "No written text.",
-          "No watermark."
-        ]
+    "Premium children's picture book illustration.",
+
+    "Whimsical, polished, colorful, expressive and child-friendly.",
+
+    "Keep recurring characters visually consistent across pages.",
+
+    "Show the story moment as an active scene, not a static portrait.",
+
+    "If the story text contains dialogue, visually show the characters interacting as if they are speaking to each other.",
+
+    "Use natural eye contact, hand gestures, facial expressions, reactions and body language to communicate the dialogue.",
+
+    "Make it visually obvious who is speaking and who is listening.",
+
+    "When appropriate, show one character pointing, explaining, asking, answering, reacting, comforting or responding.",
+
+    "Use cinematic composition and storytelling poses.",
+
+    "Avoid characters simply standing and looking at the camera.",
+
+    respectfulRule,
+
+    prompt,
+
+    "Do not generate speech bubbles.",
+
+    "Do not generate written dialogue inside the illustration.",
+
+    "No written text.",
+
+    "No watermark."
+  ]
           .filter(Boolean)
           .join(" ");
 
@@ -2945,17 +2969,21 @@ STRICT RULES:
 - Page numbers start at 1.
 - Each page should contain approximately 70 to 100 words of story text.
 - Write a rich, complete scene for every page.
-- Do not make pages feel like short summaries.
-- Include dialogue, emotion, action and description where appropriate.
+- Include natural dialogue where appropriate.
+- Include emotion, action and description.
 - Maintain smooth continuity from one page to the next.
 - Keep all character names, personalities and appearance consistent.
-- The story must have a clear beginning, development, climax and ending.
-- Use child-friendly vocabulary appropriate for the selected age.
-- Every page must include a detailed English illustrationPrompt describing the exact scene.
-- Illustration prompts must describe recurring characters consistently.
+
+- Every page must include a detailed English illustrationPrompt.
+- Every illustrationPrompt must describe the interaction between characters.
+- If a page contains dialogue, describe who is speaking and who is listening.
+- Describe facial expressions, eye contact, hand gestures and body language.
+- Capture the emotional moment of the dialogue.
+- Avoid static portrait-style scenes.
+- Do not request speech bubbles or written dialogue inside the image.
+
 - Include a meaningful moral.
 - Include a detailed English coverIllustrationIdea.
-- For Islamic prophet stories, keep sacred figures respectful and avoid identifiable facial features in illustration descriptions.
 - No Markdown.
 
 Return:
