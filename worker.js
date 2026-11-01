@@ -2633,6 +2633,131 @@ async function callGeminiJSON(
   }
 }
 
+async function generateAutoStoryImage(
+  env,
+  userId,
+  bookId,
+  prompt,
+  kind = "page"
+) {
+  if (
+    !env.CLOUDFLARE_ACCOUNT_ID ||
+    !env.CLOUDFLARE_API_TOKEN
+  ) {
+    throw new Error(
+      "Cloudflare AI Image belum dikonfigurasi."
+    );
+  }
+
+  const model =
+    env.CLOUDFLARE_IMAGE_MODEL ||
+    "@cf/black-forest-labs/flux-1-schnell";
+
+  const respectfulRule =
+    "If the scene involves a Prophet or sacred religious figure, do not show identifiable facial features. Use a respectful back view, silhouette, soft light, environmental storytelling or symbolic composition.";
+
+  const stylePrompt =
+    kind === "cover"
+      ? [
+          "Premium vertical children's picture book cover illustration.",
+          "Whimsical, polished, colorful, cinematic storybook art.",
+          "Strong central composition with clear visual hierarchy.",
+          "Leave natural visual breathing room for title placement.",
+          respectfulRule,
+          prompt,
+          "No written text in the artwork.",
+          "No typography.",
+          "No watermark."
+        ]
+          .filter(Boolean)
+          .join(" ")
+
+      : [
+          "Premium children's picture book illustration.",
+          "Whimsical, polished, colorful, expressive and child-friendly.",
+          "Keep recurring characters visually consistent across pages.",
+          respectfulRule,
+          prompt,
+          "No written text.",
+          "No watermark."
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+  const response =
+    await fetch(
+      "https://api.cloudflare.com/client/v4/accounts/" +
+      encodeURIComponent(
+        env.CLOUDFLARE_ACCOUNT_ID
+      ) +
+      "/ai/run/" +
+      model,
+      {
+        method: "POST",
+
+        headers: {
+          Authorization:
+            `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify({
+            prompt: stylePrompt
+          })
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if (
+    !response.ok ||
+    data.success === false
+  ) {
+    console.error(
+      "[Auto Story Image]",
+      data
+    );
+
+    throw new Error(
+      data?.errors?.[0]?.message ||
+      `Cloudflare Image HTTP ${response.status}`
+    );
+  }
+
+  const base64 =
+    data?.result?.image;
+
+  if (!base64) {
+    throw new Error(
+      "Cloudflare tidak memulangkan gambar."
+    );
+  }
+
+  const bytes =
+    base64ToBytes(
+      base64
+    );
+
+  const stored =
+    await saveImageToKV(
+      env,
+      userId,
+      bookId,
+      bytes.buffer,
+      "image/jpeg"
+    );
+
+  await incrementImageUsage(
+    env,
+    userId
+  );
+
+  return stored.imageUrl;
+}
 
 async function generateStory(
   request,
@@ -2744,6 +2869,45 @@ async function generateStory(
     );
   }
 
+  /*
+    Cover + semua halaman.
+    Contoh 20 halaman = 21 gambar.
+  */
+  const quota =
+    await assertImageQuota(
+      env,
+      user.id
+    );
+
+  const requiredImages =
+    pageCount + 1;
+
+  if (
+    !quota.allowed ||
+    quota.remaining <
+      requiredImages
+  ) {
+    return json(
+      {
+        error:
+          `Kuota gambar tidak mencukupi. Buku ini memerlukan ${requiredImages} gambar tetapi baki hari ini hanya ${quota.remaining}.`,
+
+        used:
+          quota.used,
+
+        limit:
+          quota.limit,
+
+        remaining:
+          quota.remaining,
+
+        required:
+          requiredImages
+      },
+      429
+    );
+  }
+
   const prompt = `
 You are a professional children's book author.
 
@@ -2787,9 +2951,11 @@ STRICT RULES:
 - Keep all character names, personalities and appearance consistent.
 - The story must have a clear beginning, development, climax and ending.
 - Use child-friendly vocabulary appropriate for the selected age.
-- Every page must include an English illustrationPrompt describing the exact scene.
+- Every page must include a detailed English illustrationPrompt describing the exact scene.
+- Illustration prompts must describe recurring characters consistently.
 - Include a meaningful moral.
-- Include an English coverIllustrationIdea.
+- Include a detailed English coverIllustrationIdea.
+- For Islamic prophet stories, keep sacred figures respectful and avoid identifiable facial features in illustration descriptions.
 - No Markdown.
 
 Return:
@@ -2797,12 +2963,12 @@ Return:
 {
   "title": "Book title",
   "moral": "Story moral",
-  "coverIllustrationIdea": "English cover description",
+  "coverIllustrationIdea": "Detailed English cover illustration description",
   "pages": [
     {
       "number": 1,
       "text": "Story text",
-      "illustrationPrompt": "English illustration description"
+      "illustrationPrompt": "Detailed English illustration description"
     }
   ]
 }
@@ -2827,53 +2993,53 @@ Return:
       return json(
         {
           error:
-            "Gemini tidak menghasilkan jumlah muka surat yang tepat."
+            "AI tidak menghasilkan jumlah muka surat yang tepat."
         },
         422
       );
     }
 
     for (
-  let i = 0;
-  i < generated.pages.length;
-  i++
-) {
-  const page =
-    generated.pages[i];
+      let i = 0;
+      i < generated.pages.length;
+      i++
+    ) {
+      const page =
+        generated.pages[i];
 
-  const pageWordCount =
-    countWords(
-      page.text
-    );
+      const pageWordCount =
+        countWords(
+          page.text
+        );
 
-  if (
-    Number(
-      page.number
-    ) !==
-      i + 1 ||
+      if (
+        Number(
+          page.number
+        ) !==
+          i + 1 ||
 
-    typeof page.text !==
-      "string" ||
+        typeof page.text !==
+          "string" ||
 
-    !page.text.trim() ||
+        !page.text.trim() ||
 
-    pageWordCount > 140 ||
+        pageWordCount > 140 ||
 
-    typeof
-      page.illustrationPrompt !==
-      "string" ||
+        typeof
+          page.illustrationPrompt !==
+          "string" ||
 
-    !page.illustrationPrompt.trim()
-  ) {
-    return json(
-      {
-        error:
-          "AI menghasilkan format halaman yang tidak sah."
-      },
-      422
-    );
-  }
-}
+        !page.illustrationPrompt.trim()
+      ) {
+        return json(
+          {
+            error:
+              "AI menghasilkan format halaman yang tidak sah."
+          },
+          422
+        );
+      }
+    }
 
     const story =
       normalizeStory({
@@ -2915,7 +3081,7 @@ Return:
                 null,
 
               layout:
-                "side",
+                "full-bottom",
 
               theme:
                 "fantasy",
@@ -2939,6 +3105,11 @@ Return:
       new Date()
         .toISOString();
 
+    /*
+      Simpan buku dulu.
+      Jadi kalau image generation berhenti,
+      buku tetap selamat.
+    */
     await env.DB
       .prepare(`
         INSERT INTO books (
@@ -2978,9 +3149,191 @@ Return:
 
       .run();
 
+    const imageErrors =
+      [];
+
+    /*
+      =======================================
+      1. AUTO GENERATE COVER
+      =======================================
+    */
+    try {
+      story.coverImageUrl =
+        await generateAutoStoryImage(
+          env,
+          user.id,
+          id,
+
+          story.coverIllustrationIdea ||
+          `Children's book cover for "${story.title}".`,
+
+          "cover"
+        );
+
+    } catch (error) {
+      console.error(
+        "[Auto Cover]",
+        error
+      );
+
+      imageErrors.push({
+        target:
+          "cover",
+
+        error:
+          error?.message ||
+          "Gagal menjana cover."
+      });
+    }
+
+    /*
+      Simpan cover ke D1.
+    */
+    await env.DB
+      .prepare(`
+        UPDATE books
+
+        SET
+          pages = ?,
+          updated_at = ?,
+          revision =
+            revision + 1
+
+        WHERE
+          id = ?
+
+          AND
+          owner_id = ?
+      `)
+
+      .bind(
+        JSON.stringify(
+          story
+        ),
+
+        new Date()
+          .toISOString(),
+
+        id,
+        user.id
+      )
+
+      .run();
+
+    /*
+      =======================================
+      2. AUTO GENERATE SETIAP HALAMAN
+      =======================================
+
+      Sequential.
+      Jangan Promise.all supaya lebih stabil.
+    */
+    for (
+      let i = 0;
+      i < story.pages.length;
+      i++
+    ) {
+      const page =
+        story.pages[i];
+
+      try {
+        page.imageUrl =
+          await generateAutoStoryImage(
+            env,
+            user.id,
+            id,
+
+            page.illustrationPrompt ||
+            `Children's book illustration for page ${page.number}. ${page.text}`,
+
+            "page"
+          );
+
+      } catch (error) {
+        console.error(
+          `[Auto Page ${page.number}]`,
+          error
+        );
+
+        imageErrors.push({
+          target:
+            String(
+              page.number
+            ),
+
+          error:
+            error?.message ||
+            "Gagal menjana gambar halaman."
+        });
+      }
+
+      /*
+        Simpan progress setiap gambar.
+        Kalau request terputus,
+        gambar yang sudah siap tak hilang.
+      */
+      await env.DB
+        .prepare(`
+          UPDATE books
+
+          SET
+            pages = ?,
+            updated_at = ?,
+            revision =
+              revision + 1
+
+          WHERE
+            id = ?
+
+            AND
+            owner_id = ?
+        `)
+
+        .bind(
+          JSON.stringify(
+            story
+          ),
+
+          new Date()
+            .toISOString(),
+
+          id,
+          user.id
+        )
+
+        .run();
+    }
+
+    const generatedImageCount =
+      (
+        story.coverImageUrl
+          ? 1
+          : 0
+      ) +
+      story.pages.filter(
+        page =>
+          Boolean(
+            page.imageUrl
+          )
+      ).length;
+
     return json({
       id,
-      ...story
+      ...story,
+
+      autoImages: {
+        requested:
+          requiredImages,
+
+        generated:
+          generatedImageCount,
+
+        failed:
+          imageErrors.length,
+
+        errors:
+          imageErrors
+      }
     });
 
   } catch (error) {
