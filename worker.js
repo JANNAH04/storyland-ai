@@ -2994,10 +2994,10 @@ Return:
   "coverIllustrationIdea": "Detailed English cover illustration description",
   "pages": [
     {
-      "number": 1,
-      "text": "Story text",
-      "illustrationPrompt": "Detailed English illustration description"
-    }
+  "number": 1,
+  "text": "Story text",
+  "illustrationPrompt": "Detailed English illustration description that exactly preserves the characters, animals, setting and actions from the page text"
+}
   ]
 }
 `;
