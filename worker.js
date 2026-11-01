@@ -2748,6 +2748,17 @@ async function generateStory(
 You are a professional children's book author.
 
 Create one original children's story.
+Write this as a complete illustrated children's storybook,
+not as a summary or outline.
+
+Each page must advance the story meaningfully.
+Use vivid scenes, natural dialogue, emotions,
+actions, reactions and smooth transitions.
+
+Avoid repetitive sentences.
+Avoid rushing major events.
+Important events should be developed across multiple pages
+when appropriate.
 
 BOOK TITLE:
 ${title}
@@ -2768,10 +2779,16 @@ STRICT RULES:
 - Return valid JSON only.
 - Exactly ${pageCount} pages.
 - Page numbers start at 1.
-- Maximum 35 words of story text per page.
-- Keep characters consistent.
-- Every page must include an English illustrationPrompt.
-- Include a moral.
+- Each page should contain approximately 70 to 100 words of story text.
+- Write a rich, complete scene for every page.
+- Do not make pages feel like short summaries.
+- Include dialogue, emotion, action and description where appropriate.
+- Maintain smooth continuity from one page to the next.
+- Keep all character names, personalities and appearance consistent.
+- The story must have a clear beginning, development, climax and ending.
+- Use child-friendly vocabulary appropriate for the selected age.
+- Every page must include an English illustrationPrompt describing the exact scene.
+- Include a meaningful moral.
 - Include an English coverIllustrationIdea.
 - No Markdown.
 
@@ -2837,8 +2854,10 @@ Return:
         !page.text.trim() ||
 
         countWords(
-          page.text
-        ) > 35 ||
+
+        pageWordCount < 50 ||
+        page.text
+      ) > 120 ||
 
         typeof
           page
