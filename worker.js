@@ -2331,24 +2331,34 @@ async function callCloudflareTextJSON(
           messages: [
             {
               role: "system",
+
               content:
-                "You must return ONLY valid JSON. No markdown, no explanation, no code fences."
+                "Return ONLY valid JSON. No markdown, no explanation, no code fences."
             },
 
             {
               role: "user",
-              content:
-                `${prompt}
-
-IMPORTANT:
-Return ONLY one valid JSON object.
-Do not add explanations.
-Do not use markdown.
-Do not use \`\`\`json code fences.`
+              content: prompt
             }
           ],
 
-          temperature
+          temperature,
+
+          /*
+            PENTING:
+            Default Cloudflare cuma 256 token.
+            Cerita panjang perlukan output lebih besar.
+          */
+          max_tokens: 12000,
+
+          /*
+            Paksa model keluarkan JSON.
+          */
+          response_format: {
+            type: "json_object"
+          },
+
+          stream: false
         })
       }
     );
@@ -2358,7 +2368,7 @@ Do not use \`\`\`json code fences.`
 
   if (!response.ok) {
     console.error(
-      "[Cloudflare Text AI]",
+      "[Cloudflare Text AI Error]",
       JSON.stringify(
         data,
         null,
@@ -2367,8 +2377,8 @@ Do not use \`\`\`json code fences.`
     );
 
     throw new Error(
+      data?.error?.message ||
       data?.errors?.[0]?.message ||
-      data?.error ||
       `Cloudflare AI HTTP ${response.status}`
     );
   }
@@ -2379,7 +2389,7 @@ Do not use \`\`\`json code fences.`
 
   if (!raw) {
     console.error(
-      "[Cloudflare Empty Response]",
+      "[Cloudflare Empty]",
       JSON.stringify(
         data,
         null,
@@ -2393,15 +2403,19 @@ Do not use \`\`\`json code fences.`
   }
 
   raw =
-    String(raw)
-      .trim();
+    String(raw).trim();
 
   console.log(
-    "[Cloudflare RAW]",
-    raw
+    "[Cloudflare RAW LENGTH]",
+    raw.length
   );
 
-  // Buang markdown code fence jika ada
+  console.log(
+    "[Cloudflare FINISH REASON]",
+    data?.choices?.[0]
+      ?.finish_reason
+  );
+
   let cleaned =
     raw
       .replace(
@@ -2418,54 +2432,54 @@ Do not use \`\`\`json code fences.`
       )
       .trim();
 
-  // Cuba parse terus dahulu
   try {
     return JSON.parse(cleaned);
-  } catch {
-    // teruskan fallback extraction
-  }
 
-  /*
-    Kadang-kadang model bagi:
-    "Here is your JSON: { ... }"
+  } catch (firstError) {
+    /*
+      Fallback:
+      extract JSON object kalau model
+      masih tambah teks di luar JSON.
+    */
+    const start =
+      cleaned.indexOf("{");
 
-    Jadi kita extract JSON object pertama.
-  */
-  const firstBrace =
-    cleaned.indexOf("{");
+    const end =
+      cleaned.lastIndexOf("}");
 
-  const lastBrace =
-    cleaned.lastIndexOf("}");
+    if (
+      start >= 0 &&
+      end > start
+    ) {
+      const extracted =
+        cleaned.slice(
+          start,
+          end + 1
+        );
 
-  if (
-    firstBrace !== -1 &&
-    lastBrace > firstBrace
-  ) {
-    cleaned =
-      cleaned.slice(
-        firstBrace,
-        lastBrace + 1
-      );
+      try {
+        return JSON.parse(
+          extracted
+        );
 
-    try {
-      return JSON.parse(cleaned);
-    } catch (error) {
-      console.error(
-        "[Cloudflare Extracted JSON Parse]",
-        cleaned,
-        error
-      );
+      } catch (secondError) {
+        console.error(
+          "[Cloudflare JSON Extract Error]",
+          extracted,
+          secondError
+        );
+      }
     }
+
+    console.error(
+      "[Cloudflare Invalid JSON]",
+      raw
+    );
+
+    throw new Error(
+      "Cloudflare AI menghasilkan JSON tidak lengkap."
+    );
   }
-
-  console.error(
-    "[Cloudflare Invalid JSON]",
-    raw
-  );
-
-  throw new Error(
-    "Cloudflare AI menghasilkan format yang tidak sah. Cuba jana semula."
-  );
 }
 
 
