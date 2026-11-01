@@ -5684,6 +5684,135 @@ async function restoreBookBackup(
   }
 }
 
+async function deleteBook(
+  request,
+  env,
+  bookId
+) {
+  const user =
+    await getSessionUser(
+      request,
+      env
+    );
+
+  if (!user) {
+    return json(
+      {
+        error:
+          "Sila log masuk terlebih dahulu."
+      },
+      401
+    );
+  }
+
+  try {
+    const book =
+      await env.DB
+        .prepare(`
+          SELECT id, pages
+
+          FROM books
+
+          WHERE
+            id = ?
+
+            AND
+            owner_id = ?
+
+          LIMIT 1
+        `)
+
+        .bind(
+          bookId,
+          user.id
+        )
+
+        .first();
+
+    if (!book) {
+      return json(
+        {
+          error:
+            "Buku tidak dijumpai."
+        },
+        404
+      );
+    }
+
+    /*
+      Padam data berkaitan dahulu.
+    */
+    await env.DB.batch([
+      env.DB
+        .prepare(`
+          DELETE FROM page_text_history
+
+          WHERE
+            book_id = ?
+
+            AND
+            owner_id = ?
+        `)
+        .bind(
+          bookId,
+          user.id
+        ),
+
+      env.DB
+        .prepare(`
+          DELETE FROM book_backups
+
+          WHERE
+            book_id = ?
+
+            AND
+            owner_id = ?
+        `)
+        .bind(
+          bookId,
+          user.id
+        ),
+
+      env.DB
+        .prepare(`
+          DELETE FROM books
+
+          WHERE
+            id = ?
+
+            AND
+            owner_id = ?
+        `)
+        .bind(
+          bookId,
+          user.id
+        )
+    ]);
+
+    return json({
+      ok: true,
+
+      message:
+        "Buku berjaya dipadam."
+    });
+
+  } catch (error) {
+    console.error(
+      "[Delete Book]",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error?.message ||
+          "Gagal memadam buku."
+      },
+      500
+    );
+  }
+}
+
 
 /* ============================================================
    API ROUTER
@@ -5950,6 +6079,17 @@ async function handleApi(
       bookMatch[1]
     );
   }
+
+  if (
+  bookMatch &&
+  request.method === "DELETE"
+) {
+  return deleteBook(
+    request,
+    env,
+    bookMatch[1]
+  );
+}
 
 
   /* ----------------------------------------------------------
