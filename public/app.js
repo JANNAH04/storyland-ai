@@ -3439,6 +3439,66 @@ document.addEventListener(
 
       previewWindow.document.close();
 
+      const closeButton =
+  previewWindow.document
+    .createElement('button');
+
+closeButton.textContent =
+  '✕ Tutup';
+
+closeButton.type =
+  'button';
+
+closeButton.style.position =
+  'fixed';
+
+closeButton.style.top =
+  '14px';
+
+closeButton.style.right =
+  '14px';
+
+closeButton.style.zIndex =
+  '999999';
+
+closeButton.style.padding =
+  '10px 16px';
+
+closeButton.style.border =
+  'none';
+
+closeButton.style.borderRadius =
+  '999px';
+
+closeButton.style.background =
+  'rgba(30, 20, 45, 0.88)';
+
+closeButton.style.color =
+  '#ffffff';
+
+closeButton.style.fontSize =
+  '14px';
+
+closeButton.style.fontWeight =
+  '700';
+
+closeButton.style.cursor =
+  'pointer';
+
+closeButton.style.boxShadow =
+  '0 6px 18px rgba(0,0,0,0.22)';
+
+closeButton.addEventListener(
+  'click',
+  () => {
+    previewWindow.close();
+  }
+);
+
+previewWindow.document.body.appendChild(
+  closeButton
+);
+
       previewWindow.focus();
 
       console.log(
