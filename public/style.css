@@ -237,11 +237,21 @@ label {
 
 main {
   display: grid;
-  grid-template-columns: minmax(310px, 360px) minmax(0, 1fr);
-  gap: 24px;
+
+  /* Lebarkan kotak cipta cerita,
+     kecilkan sedikit koleksi cerita */
+  grid-template-columns:
+    minmax(400px, 430px)
+    minmax(0, 1fr);
+
+  gap: 20px;
+
   align-items: start;
+
   max-width: 1500px;
+
   margin: 16px auto 60px;
+
   padding: 0 25px;
 }
 
@@ -2131,19 +2141,51 @@ button {
   gap: 8px !important;
   align-items: start !important;
 }
-
-/* Dropdown Bilangan Muka Surat yang terpisah */
-.three > select {
+.three > label:last-of-type {
   grid-column: 3 !important;
-  grid-row: 1 !important;
+  grid-row: 2 !important;
 
-  align-self: end !important;
+  margin-top: 4px !important;
+  text-align: center !important;
 
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+}
+/* =========================================
+   STORY GENERATOR — 3 PILIHAN SEJAJAR
+   ========================================= */
+
+.three {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr)) !important;
+
+  gap: 10px !important;
+
+  align-items: start !important;
+}
+
+.three label {
+  margin-top: 15px !important;
+
+  min-width: 0 !important;
+
+  white-space: nowrap !important;
+
+  font-size: 10.5px !important;
+
+  line-height: 1.2 !important;
+}
+
+.three select {
   width: 100% !important;
+
   height: 40px !important;
 
-  margin-top: 30px !important;
+  margin-top: 7px !important;
 
   padding: 7px 5px !important;
+
   font-size: 11px !important;
 }
