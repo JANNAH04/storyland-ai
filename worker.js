@@ -4826,9 +4826,8 @@ async function generatePageText(
     Number(pageNumber);
 
   if (
-    !Number.isInteger(
-      number
-    )
+    !Number.isInteger(number) ||
+    number < 1
   ) {
     return json(
       {
@@ -4838,6 +4837,15 @@ async function generatePageText(
       400
     );
   }
+
+  const body =
+    await readJson(request);
+
+  const instructions =
+    cleanText(
+      body?.instructions || "",
+      500
+    );
 
   try {
     const book =
@@ -4876,21 +4884,18 @@ async function generatePageText(
     const story =
       normalizeStory(
         JSON.parse(
-          book.pages ||
-          "{}"
+          book.pages || "{}"
         )
       );
 
-    const page =
-      story.pages.find(
+    const index =
+      story.pages.findIndex(
         item =>
-          Number(
-            item.number
-          ) ===
+          Number(item.number) ===
           number
       );
 
-    if (!page) {
+    if (index < 0) {
       return json(
         {
           error:
@@ -4900,100 +4905,153 @@ async function generatePageText(
       );
     }
 
+    const current =
+      story.pages[index];
+
+    const previous =
+      story.pages[index - 1];
+
+    const next =
+      story.pages[index + 1];
+
     const prompt = `
 Return valid JSON only.
 
-Write replacement story text for page ${number}
-of a children's story.
+You are a professional children's story writer.
 
-Book title:
+Rewrite ONLY page ${number} of a children's book.
+
+BOOK TITLE:
 ${book.title}
 
-Book idea:
+MAIN STORY IDEA:
 ${book.idea || ""}
 
-Language:
+TARGET AGE:
+${book.age || ""}
+
+LANGUAGE:
 ${book.language || "Bahasa Melayu"}
 
-Current page text:
-${page.text || ""}
+BOOK MORAL:
+${story.moral || ""}
 
-Rules:
-- Maximum 100 words.
-- Natural child-friendly language.
-- Keep continuity with the story.
+CHARACTERS:
+${story.characterGuide || ""}
+
+PREVIOUS PAGE:
+${previous?.text || "Beginning of story"}
+
+CURRENT PAGE:
+${current?.text || ""}
+
+NEXT PAGE:
+${next?.text || "End of story"}
+
+USER INSTRUCTIONS:
+${instructions || "Improve this page naturally."}
+
+STRICT RULES:
+- Write only replacement story text.
+- Minimum 5 words.
+- Maximum 35 words.
+- Use the selected story language.
+- Maintain character names and personality.
+- Maintain continuity with previous and next pages.
+- Do not change the overall storyline.
+- Do not add a page title.
+- Do not add page numbers.
+- Child-friendly language.
 - No Markdown.
 
-Return:
+Return exactly:
 {
-  "text": "..."
+  "text": "replacement story text"
 }
 `;
 
-    const result =
-      await callGeminiJSON(
-        env,
-        prompt,
-        0.75
+    let generatedText = "";
+
+    /*
+      Cuba sehingga 2 kali jika AI
+      hasilkan teks melebihi 35 perkataan.
+    */
+    for (
+      let attempt = 0;
+      attempt < 2;
+      attempt++
+    ) {
+      const result =
+        await callGeminiJSON(
+          env,
+          prompt,
+          0.7
+        );
+
+      generatedText =
+        String(
+          result?.text || ""
+        )
+          .trim()
+          .replace(
+            /^[\"“]|[\"”]$/g,
+            ""
+          );
+
+      const words =
+        countWords(
+          generatedText
+        );
+
+      if (
+        generatedText &&
+        words >= 5 &&
+        words <= 35
+      ) {
+        break;
+      }
+    }
+
+    const wordCount =
+      countWords(
+        generatedText
       );
 
-    const text =
-      String(
-        result?.text ||
-        ""
-      ).trim();
-
     if (
-      !text ||
-      text.length >
-        MAX_PAGE_TEXT_LENGTH
+      !generatedText ||
+      wordCount < 5 ||
+      wordCount > 35
     ) {
       return json(
         {
           error:
-            "AI tidak memulangkan teks yang sah."
+            "AI tidak menghasilkan teks mengikut had 35 perkataan."
         },
-        502
+        422
       );
     }
 
-    page.text =
-      text;
+    /*
+      PENTING:
+      Jangan terus save teks ke database.
 
-    await env.DB
-      .prepare(`
-        UPDATE books
-
-        SET
-          pages = ?,
-          updated_at = ?,
-          revision =
-            revision + 1
-
-        WHERE
-          id = ?
-
-          AND
-          owner_id = ?
-      `)
-
-      .bind(
-        JSON.stringify(
-          story
-        ),
-
-        new Date()
-          .toISOString(),
-
-        bookId,
-        user.id
-      )
-
-      .run();
+      UI akan paparkan cadangan dahulu.
+      User tekan "Guna Teks Ini"
+      barulah frontend apply.
+    */
 
     return json({
       ok: true,
-      text
+
+      pageNumber:
+        number,
+
+      originalText:
+        current.text || "",
+
+      generatedText,
+
+      wordCount
     });
 
   } catch (error) {
