@@ -3266,16 +3266,37 @@ Return:
 
       try {
         page.imageUrl =
-          await generateAutoStoryImage(
-            env,
-            user.id,
-            id,
+  await generateAutoStoryImage(
+    env,
+    user.id,
+    id,
 
-            page.illustrationPrompt ||
-            `Children's book illustration for page ${page.number}. ${page.text}`,
+    `
+STORY TEXT FOR THIS PAGE:
+${page.text}
 
-            "page"
-          );
+ILLUSTRATION DESCRIPTION:
+${page.illustrationPrompt}
+
+STRICT VISUAL ACCURACY:
+- The illustration MUST match the story text above.
+- The story text is the main source of truth.
+- Preserve the exact named characters mentioned in the story.
+- Preserve the exact animals mentioned in the story.
+- Preserve the correct setting, objects and actions.
+- Never replace one animal species with another animal.
+- Never invent a camel, horse, elephant or other major animal unless explicitly mentioned.
+- Never replace a rabbit with another animal.
+- Do not invent major characters that are not mentioned.
+- If the illustration description conflicts with the story text, follow the story text.
+- Show the exact interaction happening in this page.
+- If characters are talking, show natural eye contact, gestures, expressions and reactions.
+- Do not use speech bubbles.
+- Do not include written text in the image.
+    `,
+
+    "page"
+  );
 
       } catch (error) {
         console.error(
