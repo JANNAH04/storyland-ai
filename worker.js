@@ -2332,12 +2332,19 @@ async function callCloudflareTextJSON(
             {
               role: "system",
               content:
-                "Return valid JSON only. Do not use Markdown."
+                "You must return ONLY valid JSON. No markdown, no explanation, no code fences."
             },
 
             {
               role: "user",
-              content: prompt
+              content:
+                `${prompt}
+
+IMPORTANT:
+Return ONLY one valid JSON object.
+Do not add explanations.
+Do not use markdown.
+Do not use \`\`\`json code fences.`
             }
           ],
 
@@ -2352,7 +2359,11 @@ async function callCloudflareTextJSON(
   if (!response.ok) {
     console.error(
       "[Cloudflare Text AI]",
-      data
+      JSON.stringify(
+        data,
+        null,
+        2
+      )
     );
 
     throw new Error(
@@ -2362,19 +2373,37 @@ async function callCloudflareTextJSON(
     );
   }
 
-  const raw =
+  let raw =
     data?.choices?.[0]
       ?.message?.content;
 
   if (!raw) {
+    console.error(
+      "[Cloudflare Empty Response]",
+      JSON.stringify(
+        data,
+        null,
+        2
+      )
+    );
+
     throw new Error(
       "Cloudflare AI tidak memulangkan jawapan."
     );
   }
 
-  const cleaned =
+  raw =
     String(raw)
-      .trim()
+      .trim();
+
+  console.log(
+    "[Cloudflare RAW]",
+    raw
+  );
+
+  // Buang markdown code fence jika ada
+  let cleaned =
+    raw
       .replace(
         /^```json\s*/i,
         ""
@@ -2386,22 +2415,57 @@ async function callCloudflareTextJSON(
       .replace(
         /\s*```$/i,
         ""
-      );
+      )
+      .trim();
 
+  // Cuba parse terus dahulu
   try {
     return JSON.parse(cleaned);
-
-  } catch (error) {
-    console.error(
-      "[Cloudflare JSON Parse]",
-      raw,
-      error
-    );
-
-    throw new Error(
-      "Format jawapan Cloudflare AI tidak sah."
-    );
+  } catch {
+    // teruskan fallback extraction
   }
+
+  /*
+    Kadang-kadang model bagi:
+    "Here is your JSON: { ... }"
+
+    Jadi kita extract JSON object pertama.
+  */
+  const firstBrace =
+    cleaned.indexOf("{");
+
+  const lastBrace =
+    cleaned.lastIndexOf("}");
+
+  if (
+    firstBrace !== -1 &&
+    lastBrace > firstBrace
+  ) {
+    cleaned =
+      cleaned.slice(
+        firstBrace,
+        lastBrace + 1
+      );
+
+    try {
+      return JSON.parse(cleaned);
+    } catch (error) {
+      console.error(
+        "[Cloudflare Extracted JSON Parse]",
+        cleaned,
+        error
+      );
+    }
+  }
+
+  console.error(
+    "[Cloudflare Invalid JSON]",
+    raw
+  );
+
+  throw new Error(
+    "Cloudflare AI menghasilkan format yang tidak sah. Cuba jana semula."
+  );
 }
 
 
