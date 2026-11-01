@@ -2512,51 +2512,7 @@ updateButtons = () => {
 updateButtons();
 
 // Panel butang Susun Atur Halaman dibuang.
-// Dropdown layout asal dikekalkan.
-
-
-  /* ==========================================
-     SMART LAYOUT
-     ========================================== */
-
-  const smartLayoutPanel =
-    window.StorylandSmartLayout
-      ?.mountPage?.({
-        page,
-        index,
-
-        onApply: result => {
-          if (
-            LAYOUTS.some(
-              ([value]) => value === result.layout
-            )
-          ) {
-            layout.value = result.layout;
-
-            layout.dispatchEvent(
-              new Event('change', {
-                bubbles: true
-              })
-            );
-          }
-
-          // Saiz gambar dikunci.
-          page.imageScale = 100;
-          page.imageAlign = 'center';
-
-          section.dataset.imageAlign = 'center';
-
-          section.style.setProperty(
-            '--page-image-scale',
-            '100%'
-          );
-
-          updateFullPagePreview();
-
-          notifyEditing();
-          refreshQualityChecker();
-        }
-      }) || el('div');
+// Dropdown layout asal dikekalkan
 
 
   /* ==========================================
@@ -2579,8 +2535,6 @@ updateButtons();
     ),
 
     body,
-
-    smartLayoutPanel
   );
 
   return section;
