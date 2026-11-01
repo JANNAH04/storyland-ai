@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=ABeeZee&family=Baloo+2:wght@400;500;600;700;800&family=Bubblegum+Sans&family=Chewy&family=Comic+Neue:wght@400;700&family=Comfortaa:wght@400;500;600;700&family=Fredoka:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&family=Patrick+Hand&family=Quicksand:wght@400;500;600;700&family=Sniglet:wght@400;800&family=Varela+Round&display=swap');
 
 /* STORYLAND AI V18.6 — COMPLETE CSS */
@@ -25,7 +24,9 @@
   box-sizing: border-box;
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   margin: 0;
@@ -36,19 +37,38 @@ body {
     linear-gradient(180deg, #f7edff, #fff8ef);
 }
 
-h1, h2, h3, h4, button, .brand {
+h1,
+h2,
+h3,
+h4,
+button,
+.brand {
   font-family: "Fredoka", sans-serif;
 }
 
-p { line-height: 1.7; color: var(--muted); }
+p {
+  line-height: 1.7;
+  color: var(--muted);
+}
 
-h1, h2, h3, h4, p {
+h1,
+h2,
+h3,
+h4,
+p {
   overflow-wrap: anywhere;
 }
 
-button, input, textarea, select { font: inherit; }
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
 
-[hidden] { display: none !important; }
+[hidden] {
+  display: none !important;
+}
 
 button {
   padding: 12px 15px;
@@ -58,7 +78,9 @@ button {
   color: white;
   font-weight: 600;
   cursor: pointer;
-  transition: transform .18s ease, opacity .18s ease;
+  transition:
+    transform .18s ease,
+    opacity .18s ease;
 }
 
 button:hover:not(:disabled) {
@@ -78,7 +100,9 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   display: block;
   width: 100%;
   min-width: 0;
@@ -92,7 +116,9 @@ input, select, textarea {
   font-size: 14px;
 }
 
-textarea { resize: vertical; }
+textarea {
+  resize: vertical;
+}
 
 label {
   display: block;
@@ -101,6 +127,10 @@ label {
   font-size: 13px;
   font-weight: 900;
 }
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
 
 .navbar {
   position: relative;
@@ -124,11 +154,14 @@ label {
   font-weight: 700;
 }
 
-.brand b { color: #d978b6; }
+.brand b {
+  color: #d978b6;
+}
 
 .brand-icon {
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
   background: #f0e0ff;
@@ -144,6 +177,10 @@ label {
   font-size: 12px;
   font-weight: 900;
 }
+
+/* ============================================================
+   HERO
+   ============================================================ */
 
 .hero {
   position: relative;
@@ -190,7 +227,9 @@ label {
   color: #6c4199;
 }
 
-.hero h1 span { color: #d673ae; }
+.hero h1 span {
+  color: #d673ae;
+}
 
 .hero p {
   max-width: 560px;
@@ -207,8 +246,15 @@ label {
   animation: floatCloud 7s ease-in-out infinite;
 }
 
-.cloud-left { left: 3%; top: 45px; }
-.cloud-right { right: 5%; top: 95px; }
+.cloud-left {
+  left: 3%;
+  top: 45px;
+}
+
+.cloud-right {
+  right: 5%;
+  top: 95px;
+}
 
 .fantasy-world {
   position: relative;
@@ -230,32 +276,48 @@ label {
   transform: translateX(-50%);
 }
 
-.rainbow { left: 8%; bottom: 15px; font-size: 65px; }
-.unicorn { right: 8%; bottom: 8px; font-size: 55px; }
-.dragon { left: 27%; bottom: 2px; font-size: 42px; }
-.sparkle { right: 27%; top: 0; font-size: 30px; }
+.rainbow {
+  left: 8%;
+  bottom: 15px;
+  font-size: 65px;
+}
+
+.unicorn {
+  right: 8%;
+  bottom: 8px;
+  font-size: 55px;
+}
+
+.dragon {
+  left: 27%;
+  bottom: 2px;
+  font-size: 42px;
+}
+
+.sparkle {
+  right: 27%;
+  top: 0;
+  font-size: 30px;
+}
+
+/* ============================================================
+   MAIN LAYOUT
+   ============================================================ */
 
 main {
   display: grid;
-
-  /* Lebarkan kotak cipta cerita,
-     kecilkan sedikit koleksi cerita */
   grid-template-columns:
     minmax(400px, 430px)
     minmax(0, 1fr);
-
   gap: 20px;
-
   align-items: start;
-
   max-width: 1500px;
-
   margin: 16px auto 60px;
-
   padding: 0 25px;
 }
 
-.panel, .workspace {
+.panel,
+.workspace {
   min-width: 0;
   padding: 25px;
   border: 2px solid white;
@@ -264,8 +326,13 @@ main {
   box-shadow: 0 12px 35px #74539918;
 }
 
-.panel { border-top: 6px solid #c6a1ed; }
-.workspace { border-top: 6px solid #efb5d3; }
+.panel {
+  border-top: 6px solid #c6a1ed;
+}
+
+.workspace {
+  border-top: 6px solid #efb5d3;
+}
 
 .section-heading {
   display: flex;
@@ -297,27 +364,90 @@ h2 {
   font-size: 24px;
 }
 
-.section-intro { font-size: 13px; }
+.section-intro {
+  font-size: 13px;
+}
+
+/* ============================================================
+   STORY GENERATOR SETTINGS
+   ============================================================ */
 
 .three {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  grid-template-rows:
+    auto auto;
+  column-gap: 10px;
+  row-gap: 5px;
+  align-items: start;
+  width: 100%;
+  margin-top: 8px;
 }
 
-.three label { font-size: 11px; }
+.three label {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.three label:nth-of-type(1) {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.three label:nth-of-type(2) {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.three label:nth-of-type(3) {
+  grid-column: 3;
+  grid-row: 1;
+}
 
 .three select {
-  padding: 10px 5px;
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  margin-top: 7px;
+  padding:
+    7px 24px
+    7px 9px;
+  border-radius: 11px;
   font-size: 11px;
+  box-sizing: border-box;
+}
+
+.three > select {
+  grid-column: 3;
+  grid-row: 2;
+  margin-top: 0;
+  align-self: end;
 }
 
 #generate {
   width: 100%;
-  margin-top: 21px;
+  min-height: 50px;
+  margin-top: 18px;
   font-size: 16px;
-  background: linear-gradient(110deg, #9264dc, #d782c6);
-  box-shadow: 0 5px 0 #8051b9;
+  background:
+    linear-gradient(
+      110deg,
+      #9264dc,
+      #d782c6
+    );
+  box-shadow:
+    0 5px 0
+    #8051b9;
+}
+
+.panel .three + #generate {
+  margin-top: 18px;
 }
 
 .ghost {
@@ -326,7 +456,8 @@ h2 {
   border: 2px solid #e7d5fa;
 }
 
-.row, .actions {
+.row,
+.actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -334,7 +465,10 @@ h2 {
   gap: 10px;
 }
 
-#message { min-height: 24px; font-size: 13px; }
+#message {
+  min-height: 24px;
+  font-size: 13px;
+}
 
 .magic-note {
   margin-top: 15px;
@@ -346,10 +480,26 @@ h2 {
   text-align: center;
 }
 
+/* ============================================================
+   LIBRARY / DASHBOARD
+   ============================================================ */
+
 #library.library {
   display: block;
   width: 100%;
   margin: 18px 0;
+}
+
+.library-heading {
+  position: relative;
+  z-index: 50;
+}
+
+#refresh {
+  position: relative;
+  z-index: 100;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .dashboard-toolbar {
@@ -360,9 +510,19 @@ h2 {
   margin: 18px 0;
 }
 
-.dashboard-heading { flex: 1 1 185px; }
-.dashboard-heading h3 { margin: 0; color: #7548a4; }
-.dashboard-heading p { margin: 4px 0; font-size: 12px; }
+.dashboard-heading {
+  flex: 1 1 185px;
+}
+
+.dashboard-heading h3 {
+  margin: 0;
+  color: #7548a4;
+}
+
+.dashboard-heading p {
+  margin: 4px 0;
+  font-size: 12px;
+}
 
 .dashboard-search {
   flex: 1 1 190px;
@@ -381,7 +541,11 @@ h2 {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(170px, 1fr)
+    );
   gap: 16px;
 }
 
@@ -394,16 +558,30 @@ h2 {
 }
 
 .dashboard-cover {
+  position: relative;
   width: 100%;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  background: linear-gradient(145deg, #cde9ff, #e6d1fb, #ffdef0);
+  background:
+    linear-gradient(
+      145deg,
+      #cde9ff,
+      #e6d1fb,
+      #ffdef0
+    );
 }
 
-.dashboard-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.dashboard-cover img,
+.dashboard-cover > img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .dashboard-cover-empty {
@@ -413,9 +591,17 @@ h2 {
   font-size: 58px;
 }
 
-.dashboard-book-info { padding: 12px; }
-.dashboard-book-info h4 { margin: 0 0 8px; }
-.dashboard-book-info p { font-size: 11px; }
+.dashboard-book-info {
+  padding: 12px;
+}
+
+.dashboard-book-info h4 {
+  margin: 0 0 8px;
+}
+
+.dashboard-book-info p {
+  font-size: 11px;
+}
 
 .dashboard-actions {
   display: flex;
@@ -429,9 +615,19 @@ h2 {
   font-size: 11px;
 }
 
-.dashboard-edit { background: #8e66ca; }
-.dashboard-duplicate { background: #ddf4e7; color: #397b55; }
-.dashboard-delete { background: #ffe4eb; color: #a83e5a; }
+.dashboard-edit {
+  background: #8e66ca;
+}
+
+.dashboard-duplicate {
+  background: #ddf4e7;
+  color: #397b55;
+}
+
+.dashboard-delete {
+  background: #ffe4eb;
+  color: #a83e5a;
+}
 
 .dashboard-empty {
   grid-column: 1 / -1;
@@ -441,12 +637,18 @@ h2 {
   text-align: center;
 }
 
+/* ============================================================
+   EDITOR
+   ============================================================ */
+
 #editor {
   width: 100%;
+  max-width: none;
   min-width: 0;
   margin-top: 27px;
   padding-top: 25px;
   border-top: 2px dashed #e6d6f9;
+  box-sizing: border-box;
 }
 
 .editor-heading {
@@ -455,8 +657,13 @@ h2 {
   background: #f7eeff;
 }
 
-#bookTitle { overflow-wrap: anywhere; }
-#moral { font-size: 13px; }
+#bookTitle {
+  overflow-wrap: anywhere;
+}
+
+#moral {
+  font-size: 13px;
+}
 
 .pdf-export-controls {
   display: flex;
@@ -465,19 +672,38 @@ h2 {
   gap: 10px;
 }
 
-.pdf-export-controls label { margin: 0; }
-.pdf-export-controls select { margin-top: 5px; }
+.pdf-export-controls label {
+  margin: 0;
+}
+
+.pdf-export-controls select {
+  margin-top: 5px;
+}
 
 .pdf-export-button {
-  background: linear-gradient(100deg, #895dd8, #d17fbd);
+  background:
+    linear-gradient(
+      100deg,
+      #895dd8,
+      #d17fbd
+    );
 }
+
+/* ============================================================
+   BOOK DESIGN TOOLS
+   ============================================================ */
 
 .storybook-tools {
   margin-top: 22px;
   padding: 17px;
   border: 2px solid var(--line);
   border-radius: 18px;
-  background: linear-gradient(135deg, #f2e6ff, #fff0f7);
+  background:
+    linear-gradient(
+      135deg,
+      #f2e6ff,
+      #fff0f7
+    );
 }
 
 .storybook-tools-title {
@@ -488,12 +714,19 @@ h2 {
 
 .storybook-settings {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
-.storybook-settings label { font-size: 12px; }
-.storybook-settings select { font-size: 12px; background: white; }
+.storybook-settings label {
+  font-size: 12px;
+}
+
+.storybook-settings select {
+  font-size: 12px;
+  background: white;
+}
 
 .storybook-view-buttons {
   display: flex;
@@ -501,18 +734,27 @@ h2 {
   margin-top: 14px;
 }
 
-.storybook-view-buttons button { flex: 1; }
-.storybook-view-buttons .active { background: #9362d5; color: white; }
+.storybook-view-buttons button {
+  flex: 1;
+}
+
+.storybook-view-buttons .active {
+  background: #9362d5;
+  color: white;
+}
 
 .storybook-navigation {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 9px;
+  width: 100%;
+  max-width: none;
   margin-top: 18px;
   padding: 12px;
   border-radius: 14px;
   background: #f3e8fe;
+  box-sizing: border-box;
 }
 
 #spreadCounter {
@@ -521,9 +763,14 @@ h2 {
   font-weight: 900;
 }
 
+/* ============================================================
+   STORY PAGES
+   ============================================================ */
+
 #pages.storybook-pages {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
   gap: 8px;
   align-items: start;
   min-width: 0;
@@ -557,12 +804,196 @@ h2 {
   padding: 17px;
   border: 2px solid #e7d2fa;
   border-radius: 18px;
-  background: linear-gradient(135deg, #f4e8ff, #fff0f8);
+  background:
+    linear-gradient(
+      135deg,
+      #f4e8ff,
+      #fff0f8
+    );
 }
+
+.storybook-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-width: 0;
+}
+
+.storybook-image-area {
+  width: var(--page-image-scale, 100%);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.story-illustration {
+  min-width: 0;
+  max-width: 100%;
+  padding: 6px;
+  border: 2px solid #efe0ca;
+  border-radius: 13px;
+  background: #fff5e6;
+  box-sizing: border-box;
+}
+
+.story-illustration img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  border-radius: 9px;
+  background: white;
+}
+
+.illustration-empty {
+  display: grid;
+  place-items: center;
+  min-height: 150px;
+  padding: 15px;
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      135deg,
+      #e1edff,
+      #ffe2f1
+    );
+  text-align: center;
+  font-size: 12px;
+}
+
+.storybook-text-box {
+  min-width: 0;
+}
+
+.storybook-text-area {
+  min-height: 145px;
+  font-family:
+    var(--book-font),
+    "Nunito",
+    sans-serif;
+  font-size:
+    var(--book-font-size);
+  line-height: 1.7;
+  background: transparent;
+}
+
+/* ============================================================
+   STANDARD LAYOUTS
+   ============================================================ */
+
+.page[data-layout="top"]
+.storybook-image-area {
+  order: 1;
+}
+
+.page[data-layout="top"]
+.storybook-text-box {
+  order: 2;
+}
+
+.page[data-layout="bottom"]
+.storybook-image-area {
+  order: 2;
+}
+
+.page[data-layout="bottom"]
+.storybook-text-box {
+  order: 1;
+}
+
+.page[data-layout="side"]
+.storybook-page-body {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+}
+
+.page[data-layout="side"]
+.storybook-image-area {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.page[data-layout="side"]
+.storybook-text-box {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.page[data-image-align="left"]
+.storybook-image-area {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.page[data-image-align="center"]
+.storybook-image-area {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.page[data-image-align="right"]
+.storybook-image-area {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* ============================================================
+   PAGE THEMES
+   ============================================================ */
+
+.page[data-theme="fantasy"] {
+  --theme-bg: #f4eaff;
+  --theme-ink: #694990;
+  --theme-border: #dcbdf5;
+}
+
+.page[data-theme="garden"] {
+  --theme-bg: #edf9ef;
+  --theme-ink: #3e7153;
+  --theme-border: #bde8c8;
+}
+
+.page[data-theme="royal"] {
+  --theme-bg: #fff5de;
+  --theme-ink: #8d642e;
+  --theme-border: #f0d49a;
+}
+
+.page[data-theme="sky"] {
+  --theme-bg: #eaf6ff;
+  --theme-ink: #3e6f9b;
+  --theme-border: #bddffa;
+}
+
+#pages > .page[data-theme] {
+  background: var(--theme-bg);
+  color: var(--theme-ink);
+}
+
+#pages > .page[data-decoration="frame"] {
+  outline:
+    3px solid
+    var(--theme-border);
+  outline-offset: -9px;
+}
+
+#pages > .page textarea {
+  color:
+    var(
+      --theme-ink,
+      var(--ink)
+    );
+}
+
+/* ============================================================
+   PREMIUM COVER
+   ============================================================ */
 
 .premium-cover-shell {
   display: grid;
-  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  grid-template-columns:
+    minmax(0, 340px)
+    minmax(0, 1fr);
   align-items: center;
   gap: 22px;
 }
@@ -576,17 +1007,33 @@ h2 {
 .premium-cover-visual {
   --cover-title-size: 36px;
   --cover-title-color: #ffffff;
-  --cover-title-font: "Fredoka", sans-serif;
+  --cover-title-font:
+    "Fredoka",
+    sans-serif;
+
   position: relative;
   isolation: isolate;
+
   width: 100%;
   max-width: 340px;
-  aspect-ratio: 3/4;
+  aspect-ratio: 3 / 4;
+
   overflow: hidden;
+
   border: 5px solid white;
   border-radius: 18px;
-  background: linear-gradient(160deg, #cce7ff, #e4c9f9, #ffd6e9);
-  box-shadow: 0 15px 30px #734da12b;
+
+  background:
+    linear-gradient(
+      160deg,
+      #cce7ff,
+      #e4c9f9,
+      #ffd6e9
+    );
+
+  box-shadow:
+    0 15px 30px
+    #734da12b;
 }
 
 .premium-cover-visual > img {
@@ -600,19 +1047,31 @@ h2 {
 .premium-cover-overlay {
   position: absolute;
   inset: 0;
+
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+
   padding: 22px;
-  background: linear-gradient(180deg, transparent, #26143bd0);
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      #26143bd0
+    );
+
   color: white;
 }
 
 .premium-cover-title {
   margin: 0;
-  font-family: var(--cover-title-font);
-  font-size: var(--cover-title-size);
-  color: var(--cover-title-color);
+  font-family:
+    var(--cover-title-font);
+  font-size:
+    var(--cover-title-size);
+  color:
+    var(--cover-title-color);
   line-height: 1.15;
   text-wrap: balance;
   overflow-wrap: anywhere;
@@ -653,7 +1112,10 @@ h2 {
   font-weight: 900;
 }
 
-.premium-side-title { color: #70469b; font-size: 21px; }
+.premium-side-title {
+  color: #70469b;
+  font-size: 21px;
+}
 
 .premium-cover-visual[data-cover-template="pastel"] {
   border: 7px solid #ffe2f2;
@@ -665,138 +1127,27 @@ h2 {
 }
 
 .premium-cover-visual[data-cover-template="royal"] {
-  border: 8px double #e6c16d;
+  border:
+    8px double
+    #e6c16d;
 }
 
 .premium-cover-visual[data-cover-template="night"] {
-  border: 5px solid #bba6f0;
+  border:
+    5px solid
+    #bba6f0;
 }
 
 .premium-cover-visual[data-cover-template="minimal"] {
-  border: 2px solid white;
+  border:
+    2px solid
+    white;
   border-radius: 3px;
 }
 
-.storybook-page-body {
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-  min-width: 0;
-}
-
-.storybook-image-area {
-  width: var(--page-image-scale, 100%);
-  min-width: 0;
-  max-width: 100%;
-}
-
-.story-illustration {
-  padding: 6px;
-  border: 2px solid #efe0ca;
-  border-radius: 13px;
-  background: #fff5e6;
-}
-
-.story-illustration img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: contain;
-  border-radius: 9px;
-  background: white;
-}
-
-.illustration-empty {
-  display: grid;
-  place-items: center;
-  min-height: 150px;
-  padding: 15px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #e1edff, #ffe2f1);
-  text-align: center;
-  font-size: 12px;
-}
-
-.storybook-text-box { min-width: 0; }
-
-.storybook-text-area {
-  min-height: 145px;
-  font-family: var(--book-font), "Nunito", sans-serif;
-  font-size: var(--book-font-size);
-  line-height: 1.7;
-  background: transparent;
-}
-
-.page[data-layout="top"] .storybook-image-area { order: 1; }
-.page[data-layout="top"] .storybook-text-box { order: 2; }
-.page[data-layout="bottom"] .storybook-image-area { order: 2; }
-.page[data-layout="bottom"] .storybook-text-box { order: 1; }
-
-.page[data-layout="side"] .storybook-page-body {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.page[data-layout="side"] .storybook-image-area {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.page[data-layout="side"] .storybook-text-box {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.page[data-image-align="left"] .storybook-image-area {
-  margin-left: 0;
-  margin-right: auto;
-}
-
-.page[data-image-align="center"] .storybook-image-area {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.page[data-image-align="right"] .storybook-image-area {
-  margin-left: auto;
-  margin-right: 0;
-}
-
-.page[data-theme="fantasy"] {
-  --theme-bg: #f4eaff;
-  --theme-ink: #694990;
-  --theme-border: #dcbdf5;
-}
-
-.page[data-theme="garden"] {
-  --theme-bg: #edf9ef;
-  --theme-ink: #3e7153;
-  --theme-border: #bde8c8;
-}
-
-.page[data-theme="royal"] {
-  --theme-bg: #fff5de;
-  --theme-ink: #8d642e;
-  --theme-border: #f0d49a;
-}
-
-.page[data-theme="sky"] {
-  --theme-bg: #eaf6ff;
-  --theme-ink: #3e6f9b;
-  --theme-border: #bddffa;
-}
-
-#pages > .page[data-theme] {
-  background: var(--theme-bg);
-  color: var(--theme-ink);
-}
-
-#pages > .page[data-decoration="frame"] {
-  outline: 3px solid var(--theme-border);
-  outline-offset: -9px;
-}
-
-#pages > .page textarea { color: var(--theme-ink, var(--ink)); }
+/* ============================================================
+   PANELS
+   ============================================================ */
 
 .page-design-panel,
 .visual-editor-tools,
@@ -813,7 +1164,12 @@ h2 {
   padding: 15px;
   border: 2px solid #e4d0f5;
   border-radius: 16px;
-  background: linear-gradient(135deg, #f5edff, #fff2f9);
+  background:
+    linear-gradient(
+      135deg,
+      #f5edff,
+      #fff2f9
+    );
 }
 
 .page-design-panel h3,
@@ -841,7 +1197,8 @@ h2 {
 
 .drag-tool-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
   gap: 7px;
   margin-top: 12px;
 }
@@ -859,6 +1216,10 @@ h2 {
   border-color: #9367d8;
   color: white;
 }
+
+/* ============================================================
+   WORD COUNTER / AI
+   ============================================================ */
 
 .word-counter,
 .ai-studio-quota {
@@ -879,13 +1240,20 @@ h2 {
 .manual-upload-label {
   padding: 12px;
   margin-top: 12px;
-  border: 2px dashed #bda0dd;
+  border:
+    2px dashed
+    #bda0dd;
   border-radius: 14px;
   background: #f4eaff;
 }
 
-.manual-upload-label label { margin: 0; }
-.manual-image-input { background: white; }
+.manual-upload-label label {
+  margin: 0;
+}
+
+.manual-image-input {
+  background: white;
+}
 
 .ai-image-button,
 .character-bible-save,
@@ -902,7 +1270,12 @@ h2 {
 
 .ai-image-button,
 .cover-gemini-idea-generate {
-  background: linear-gradient(110deg, #865bd4, #c47cc7);
+  background:
+    linear-gradient(
+      110deg,
+      #865bd4,
+      #c47cc7
+    );
 }
 
 .ai-quota-bar {
@@ -916,10 +1289,17 @@ h2 {
 
 .ai-quota-fill {
   height: 100%;
-  background: linear-gradient(90deg, #8f63d1, #d382c7);
+  background:
+    linear-gradient(
+      90deg,
+      #8f63d1,
+      #d382c7
+    );
 }
 
-.ai-quota-fill.quota-full { background: #d95972; }
+.ai-quota-fill.quota-full {
+  background: #d95972;
+}
 
 .ai-custom-prompt,
 .cover-gemini-idea-box,
@@ -945,6 +1325,10 @@ h2 {
   font-size: 12px;
 }
 
+/* ============================================================
+   CHARACTER CARDS
+   ============================================================ */
+
 .character-card-list {
   display: grid;
   gap: 13px;
@@ -958,13 +1342,15 @@ h2 {
   border-radius: 14px;
 }
 
-.character-card label { font-size: 12px; }
+.character-card label {
+  font-size: 12px;
+}
 
 .character-preview {
   display: block;
   width: 100%;
   max-width: 180px;
-  aspect-ratio: 3/4;
+  aspect-ratio: 3 / 4;
   object-fit: cover;
   border-radius: 10px;
 }
@@ -982,9 +1368,14 @@ h2 {
   font-weight: 800;
 }
 
+/* ============================================================
+   COVER DESIGN
+   ============================================================ */
+
 .cover-template-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
@@ -1005,12 +1396,18 @@ h2 {
 
 .cover-designer-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
-.cover-designer-field { font-size: 12px; }
-.cover-designer-field input[type="range"] { accent-color: #9064cf; }
+.cover-designer-field {
+  font-size: 12px;
+}
+
+.cover-designer-field input[type="range"] {
+  accent-color: #9064cf;
+}
 
 .cover-slider-header {
   display: flex;
@@ -1035,19 +1432,32 @@ h2 {
   font-weight: 800;
 }
 
+/* ============================================================
+   IMAGE HISTORY
+   ============================================================ */
+
 .image-history-panel {
   margin-top: 15px;
   padding: 14px;
-  border: 2px solid #e3d2f4;
+  border:
+    2px solid
+    #e3d2f4;
   border-radius: 15px;
   background: #f9f4ff;
 }
 
-.image-history-heading { color: #744ba0; font-size: 16px; }
+.image-history-heading {
+  color: #744ba0;
+  font-size: 16px;
+}
 
 .image-history-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr));
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(min(100%, 120px), 1fr)
+    );
   gap: 10px;
   margin-top: 12px;
 }
@@ -1063,14 +1473,16 @@ h2 {
 .image-history-preview {
   display: block;
   width: 100%;
-  aspect-ratio: 3/4;
+  aspect-ratio: 3 / 4;
   object-fit: contain;
   background: #f5effa;
   border-radius: 8px;
 }
 
 .image-history-restore,
-.image-history-refresh { width: 100%; }
+.image-history-refresh {
+  width: 100%;
+}
 
 .image-history-label,
 .image-history-status,
@@ -1078,13 +1490,22 @@ h2 {
   font-size: 11px;
 }
 
+/* ============================================================
+   BACKUP
+   ============================================================ */
+
 .book-backup-panel {
   width: 100%;
   margin: 18px 0;
   padding: 19px;
   border: 2px solid #d8c4ef;
   border-radius: 18px;
-  background: linear-gradient(135deg, #f2e9ff, #eff8ff);
+  background:
+    linear-gradient(
+      135deg,
+      #f2e9ff,
+      #eff8ff
+    );
 }
 
 .book-backup-panel h3 {
@@ -1092,11 +1513,14 @@ h2 {
   color: #744ba3;
 }
 
-.book-backup-panel > p { font-size: 12px; }
+.book-backup-panel > p {
+  font-size: 12px;
+}
 
 .book-backup-controls {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns:
+    1fr auto;
   gap: 10px;
   margin: 12px 0;
 }
@@ -1123,9 +1547,19 @@ h2 {
   border-radius: 12px;
 }
 
-.book-backup-info { display: grid; gap: 5px; }
-.book-backup-info strong { font-size: 13px; }
-.book-backup-info small { font-size: 11px; color: #9a86a9; }
+.book-backup-info {
+  display: grid;
+  gap: 5px;
+}
+
+.book-backup-info strong {
+  font-size: 13px;
+}
+
+.book-backup-info small {
+  font-size: 11px;
+  color: #9a86a9;
+}
 
 .book-backup-restore {
   background: #e8ddf7;
@@ -1136,6 +1570,10 @@ h2 {
   font-size: 12px;
   font-weight: 800;
 }
+
+/* ============================================================
+   DRAFT / CONFLICT
+   ============================================================ */
 
 .draft-recovery-panel,
 .storyland-conflict-panel {
@@ -1176,8 +1614,17 @@ h2 {
 
 .storyland-save-conflict-copy {
   flex: 1 1 100% !important;
-  background: linear-gradient(110deg, #8756ca, #bd77c8);
+  background:
+    linear-gradient(
+      110deg,
+      #8756ca,
+      #bd77c8
+    );
 }
+
+/* ============================================================
+   HISTORY / AUTOSAVE
+   ============================================================ */
 
 .storyland-history-toolbar {
   display: flex;
@@ -1196,7 +1643,9 @@ h2 {
   min-width: 105px;
 }
 
-.history-redo-button { background: #c080cf; }
+.history-redo-button {
+  background: #c080cf;
+}
 
 .history-counter {
   margin-left: auto;
@@ -1229,6 +1678,10 @@ h2 {
   color: #98641f;
 }
 
+/* ============================================================
+   AUTH
+   ============================================================ */
+
 .storyland-auth-screen {
   position: fixed;
   inset: 0;
@@ -1238,7 +1691,12 @@ h2 {
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
-  background: linear-gradient(135deg, #bce4ff, #e6d5fb);
+  background:
+    linear-gradient(
+      135deg,
+      #bce4ff,
+      #e6d5fb
+    );
 }
 
 .storyland-auth-card {
@@ -1248,15 +1706,24 @@ h2 {
   background: white;
   border: 3px solid white;
   border-radius: 24px;
-  box-shadow: 0 18px 45px #6a4d9429;
+  box-shadow:
+    0 18px 45px
+    #6a4d9429;
 }
 
-.storyland-auth-card h2 { text-align: center; }
-.storyland-auth-card p { text-align: center; font-size: 13px; }
+.storyland-auth-card h2 {
+  text-align: center;
+}
+
+.storyland-auth-card p {
+  text-align: center;
+  font-size: 13px;
+}
 
 .storyland-auth-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns:
+    1fr 1fr;
   gap: 9px;
   margin: 20px 0;
 }
@@ -1271,7 +1738,10 @@ h2 {
   color: white;
 }
 
-.storyland-auth-submit { width: 100%; margin-top: 15px; }
+.storyland-auth-submit {
+  width: 100%;
+  margin-top: 15px;
+}
 
 .storyland-account-bar {
   display: flex;
@@ -1290,167 +1760,9 @@ body:not(.auth-ready) .hero {
   visibility: hidden;
 }
 
-/* PREVIEW MODE */
-
-#pages.is-preview textarea {
-  border: 0;
-  background: transparent;
-  resize: none;
-  pointer-events: none;
-}
-
-#pages.is-preview .premium-cover-side-panel,
-#pages.is-preview .page-design-panel,
-#pages.is-preview .page-layout-label,
-#pages.is-preview .visual-editor-tools,
-#pages.is-preview .ai-image-studio,
-#pages.is-preview .manual-upload-label,
-#pages.is-preview .word-counter,
-#pages.is-preview .image-history-panel,
-#pages.is-preview .smart-layout-panel,
-#pages.is-preview .character-bible-panel,
-#pages.is-preview .character-studio-panel,
-#pages.is-preview .cover-designer-panel,
-#pages.is-preview .cover-gemini-idea,
-#pages.is-preview details {
-  display: none !important;
-}
-
-footer {
-  padding: 24px;
-  text-align: center;
-  background: #f0e2fb;
-  color: #7b52a7;
-}
-
-footer p { font-size: 12px; }
-
-@keyframes floatCloud {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-
-/* RESPONSIVE */
-
-@media (max-width: 1250px) {
-  main {
-    grid-template-columns: 1fr;
-    max-width: 960px;
-  }
-}
-
-@media (max-width: 800px) {
-  main { padding: 0 15px; }
-  .panel, .workspace { padding: 19px; }
-  .premium-cover-shell { grid-template-columns: 1fr; }
-  .premium-cover-visual { margin: auto; }
-  .storybook-settings {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 600px) {
-  main { display: block; padding: 0 12px; }
-  .panel, .workspace { padding: 15px; margin-bottom: 16px; }
-  .hero { min-height: 290px; }
-  .hero h1 { font-size: 30px; }
-  .fantasy-world { height: 100px; }
-  .castle { font-size: 85px; }
-  .rainbow { font-size: 45px; }
-  .unicorn { font-size: 44px; }
-  .dragon { font-size: 35px; }
-  .hero-cloud { font-size: 42px; }
-
-  .three { gap: 4px; }
-  .dashboard-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
-  }
-
-  .dashboard-actions { flex-direction: column; }
-  .dashboard-actions button { width: 100%; }
-
-  .storybook-settings,
-  .cover-designer-controls {
-    grid-template-columns: 1fr;
-  }
-
-  #pages.storybook-pages {
-    grid-template-columns: 1fr;
-    padding: 8px;
-  }
-
-  .page[data-layout="side"] .storybook-page-body {
-    grid-template-columns: 1fr;
-  }
-
-  .page[data-layout="side"] .storybook-image-area {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .page[data-layout="side"] .storybook-text-box {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .book-backup-controls { grid-template-columns: 1fr; }
-
-  .book-backup-card {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .draft-recovery-actions,
-  .storyland-conflict-actions {
-    flex-direction: column;
-  }
-
-  .history-counter {
-    width: 100%;
-    text-align: center;
-    margin: 0;
-  }
-
-  .pdf-export-controls,
-  .pdf-export-controls label,
-  .pdf-export-controls select,
-  .pdf-export-button {
-    width: 100%;
-  }
-
-  .storybook-navigation button {
-    padding: 9px;
-    font-size: 11px;
-  }
-
-  .drag-tool-row { gap: 5px; }
-  .layout-choice-button { font-size: 10px; }
-  .cover-template-grid { grid-template-columns: 1fr 1fr; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; }
-}
-
-@media print {
-  .navbar, .hero, .panel, .dashboard-wrapper,
-  .storybook-tools, .storybook-navigation,
-  .visual-editor-tools, .ai-image-studio,
-  .manual-upload-label, .book-backup-panel,
-  .storyland-history-toolbar, .draft-recovery-panel,
-  .storyland-conflict-panel, .image-history-panel,
-  .cover-designer-panel, .character-studio-panel,
-  .character-bible-panel, .cover-gemini-idea,
-  footer {
-    display: none !important;
-  }
-}
-
-/* ==========================================
-   STORYLAND AI V18.8
-   PROFIL PENGGUNA
-   ========================================== */
+/* ============================================================
+   PROFILE
+   ============================================================ */
 
 .storyland-profile-button {
   padding: 11px 17px;
@@ -1474,7 +1786,8 @@ footer p { font-size: 12px; }
   padding: 18px;
   overflow-y: auto;
 
-  background: rgba(36, 22, 57, .55);
+  background:
+    rgba(36, 22, 57, .55);
 }
 
 .storyland-profile-dialog {
@@ -1486,7 +1799,10 @@ footer p { font-size: 12px; }
   border-radius: 23px;
 
   background: #ffffff;
-  box-shadow: 0 20px 55px rgba(55, 32, 88, .2);
+
+  box-shadow:
+    0 20px 55px
+    rgba(55, 32, 88, .2);
 }
 
 .storyland-profile-header {
@@ -1518,7 +1834,9 @@ footer p { font-size: 12px; }
   margin: 16px auto 20px;
 
   border-radius: 50%;
+
   background: #f1e5ff;
+
   font-size: 34px;
 }
 
@@ -1532,7 +1850,6 @@ footer p { font-size: 12px; }
   width: 100%;
   margin-top: 8px;
   padding: 13px;
-
   border: 2px solid #e6d6f5;
   border-radius: 13px;
   background: #fcfaff;
@@ -1554,11 +1871,12 @@ footer p { font-size: 12px; }
   width: 100%;
   margin-top: 18px;
   padding: 14px;
-  background: linear-gradient(
-    100deg,
-    #8659ce,
-    #c07bc9
-  );
+  background:
+    linear-gradient(
+      100deg,
+      #8659ce,
+      #c07bc9
+    );
 }
 
 .storyland-profile-status {
@@ -1568,20 +1886,37 @@ footer p { font-size: 12px; }
   font-weight: 800;
 }
 
-@media (max-width: 600px) {
-  .storyland-profile-dialog {
-    padding: 18px;
-  }
+/* ============================================================
+   PREVIEW MODE
+   ============================================================ */
 
-  .storyland-profile-button {
-    padding: 9px 11px;
-    font-size: 12px;
-  }
+#pages.is-preview textarea {
+  border: 0;
+  background: transparent;
+  resize: none;
+  pointer-events: none;
 }
 
-/* ==========================================
-   STORYLAND AI — PAGE GENERATOR
-   ========================================== */
+#pages.is-preview .premium-cover-side-panel,
+#pages.is-preview .page-design-panel,
+#pages.is-preview .page-layout-label,
+#pages.is-preview .visual-editor-tools,
+#pages.is-preview .ai-image-studio,
+#pages.is-preview .manual-upload-label,
+#pages.is-preview .word-counter,
+#pages.is-preview .image-history-panel,
+#pages.is-preview .smart-layout-panel,
+#pages.is-preview .character-bible-panel,
+#pages.is-preview .character-studio-panel,
+#pages.is-preview .cover-designer-panel,
+#pages.is-preview .cover-gemini-idea,
+#pages.is-preview details {
+  display: none !important;
+}
+
+/* ============================================================
+   PAGE GENERATOR
+   ============================================================ */
 
 .page-story-generator {
   margin-top: 18px;
@@ -1592,10 +1927,10 @@ footer p { font-size: 12px; }
 }
 
 .page-story-title {
-  font-weight: 800;
-  font-size: 16px;
-  color: #7040ad;
   margin-bottom: 12px;
+  color: #7040ad;
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .page-story-instructions,
@@ -1612,12 +1947,12 @@ footer p { font-size: 12px; }
 
 .page-story-generate,
 .page-story-apply {
-  background: #925ed8;
-  color: white;
-  border: 0;
-  border-radius: 10px;
   padding: 12px 16px;
   margin-top: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #925ed8;
+  color: white;
   cursor: pointer;
   font-weight: 700;
 }
@@ -1651,36 +1986,38 @@ footer p { font-size: 12px; }
 }
 
 .page-story-cancel {
-  background: #ece5f5;
-  color: #543879;
-  border: 0;
-  border-radius: 10px;
   padding: 12px 16px;
   margin-top: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #ece5f5;
+  color: #543879;
   cursor: pointer;
 }
 
 .page-story-status {
+  margin-top: 10px;
   color: #70558f;
   font-size: 13px;
-  margin-top: 10px;
 }
 
-/* STORYLAND V19.2 — SEJARAH CERITA */
+/* ============================================================
+   STORY HISTORY
+   ============================================================ */
 
 .story-history-panel {
   margin-top: 16px;
   padding: 18px;
-  background: #f9f3ff;
   border: 1px solid #ddc9fa;
   border-radius: 17px;
+  background: #f9f3ff;
   color: #654389;
 }
 
 .story-history-panel h4 {
   margin: 0 0 8px;
-  font-size: 17px;
   color: #7546b1;
+  font-size: 17px;
 }
 
 .story-history-panel p {
@@ -1690,10 +2027,10 @@ footer p { font-size: 12px; }
 .story-history-refresh {
   width: 100%;
   padding: 12px;
-  background: #9160d6;
-  color: white;
   border: 0;
   border-radius: 11px;
+  background: #9160d6;
+  color: white;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1701,19 +2038,19 @@ footer p { font-size: 12px; }
 .story-history-list {
   display: grid;
   gap: 12px;
-  margin-top: 15px;
   max-height: 400px;
+  margin-top: 15px;
   overflow-y: auto;
 }
 
 .story-history-card {
-  padding: 14px;
-  background: white;
-  border: 1px solid #eadcff;
-  border-radius: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 14px;
+  border: 1px solid #eadcff;
+  border-radius: 12px;
+  background: white;
 }
 
 .story-history-card p {
@@ -1728,10 +2065,10 @@ footer p { font-size: 12px; }
 
 .story-history-restore {
   padding: 10px;
-  background: #eee3fc;
-  color: #7245ab;
   border: 0;
   border-radius: 9px;
+  background: #eee3fc;
+  color: #7245ab;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1742,20 +2079,10 @@ footer p { font-size: 12px; }
   cursor: wait;
 }
 
-/* ======================================================
-   STORYLAND AI V19.4
-   ONE PAGE — FULL WIDTH EDITOR
-   ====================================================== */
+/* ============================================================
+   SINGLE PAGE MODE
+   ============================================================ */
 
-/* Editor utama */
-#editor {
-  width: 100%;
-  max-width: none;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-/* Container halaman */
 #pages.storyland-single-page-mode {
   display: block !important;
   grid-template-columns: none !important;
@@ -1765,7 +2092,6 @@ footer p { font-size: 12px; }
   box-sizing: border-box;
 }
 
-/* Satu halaman memenuhi ruang editor */
 #pages.storyland-single-page-mode > .page,
 #pages.storyland-single-page-mode > .cover-page {
   width: 100% !important;
@@ -1776,13 +2102,11 @@ footer p { font-size: 12px; }
   box-sizing: border-box;
 }
 
-/* Sembunyikan halaman yang tidak aktif */
 #pages.storyland-single-page-mode > .page[hidden],
 #pages.storyland-single-page-mode > .cover-page[hidden] {
   display: none !important;
 }
 
-/* Gambar dan teks boleh menggunakan lebar */
 #pages.storyland-single-page-mode
 .storybook-page-body {
   width: 100%;
@@ -1790,7 +2114,6 @@ footer p { font-size: 12px; }
   box-sizing: border-box;
 }
 
-/* Elakkan komponen melimpah */
 #pages.storyland-single-page-mode
 .storybook-page-body > * {
   min-width: 0;
@@ -1798,7 +2121,6 @@ footer p { font-size: 12px; }
   box-sizing: border-box;
 }
 
-/* Kotak editor teks */
 #pages.storyland-single-page-mode
 .storybook-text-box {
   min-width: 0;
@@ -1806,7 +2128,6 @@ footer p { font-size: 12px; }
   box-sizing: border-box;
 }
 
-/* Kotak Jana Cerita dan Sejarah */
 #pages.storyland-single-page-mode
 .storyland-page-generator-container,
 #pages.storyland-single-page-mode
@@ -1819,14 +2140,269 @@ footer p { font-size: 12px; }
   box-sizing: border-box;
 }
 
-/* Navigasi */
-.storybook-navigation {
-  width: 100%;
-  max-width: none;
+/* ============================================================
+   IDEA ILUSTRASI BM — HIDDEN
+   ============================================================ */
+
+.storyland-idea-malay {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  color: #7950a6;
+  font-size: 16px;
+}
+
+details:has(.storyland-idea-malay) {
+  display: none !important;
+}
+
+#pages details > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#pages details[open] {
+  padding: 12px;
+  border-radius: 12px;
+  background: #f7edff;
+}
+
+/* ============================================================
+   STORY IMAGE SIZE
+   ============================================================ */
+
+:root {
+  --story-image-ratio: 3 / 4;
+}
+
+#pages .page
+.story-image-preview {
+  position: relative;
+  width: 100% !important;
+  max-width: 100%;
+  height: auto !important;
+  aspect-ratio:
+    var(--story-image-ratio) !important;
+  overflow: hidden;
+  border-radius: 14px;
   box-sizing: border-box;
 }
 
-/* Mobile */
+#pages .page
+.story-image-preview img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  object-position: center;
+  transform: none !important;
+}
+
+#pages .page
+.story-image-preview
+.illustration-empty {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  background: #f7f0ff;
+  color: #8965b5;
+
+  text-align: center;
+}
+
+/* ============================================================
+   FULL PAGE IMAGE + TEXT OVERLAY
+   ============================================================ */
+
+#pages .page
+.storyland-page-canvas {
+  display: none;
+}
+
+#pages .page[data-full-image="true"]
+.storyland-page-canvas {
+  position: relative;
+  display: block !important;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #f4ebff;
+}
+
+#pages .page[data-full-image="true"]
+.storyland-full-image-display {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#pages .page[data-full-image="true"]
+.storyland-full-image-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.storyland-full-image-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f2e7ff;
+  color: #7957a1;
+}
+
+#pages .page[data-full-image="true"]
+.storyland-full-overlay-text {
+  position: absolute;
+  z-index: 2;
+  left: 6%;
+  right: 6%;
+  padding: 18px 22px;
+  border-radius: 14px;
+  background:
+    rgba(255, 255, 255, 0.78);
+  color: #33224e;
+  font-family:
+    var(
+      --book-font,
+      "Nunito",
+      sans-serif
+    );
+  font-size:
+    var(
+      --book-font-size,
+      18px
+    );
+  font-weight: 700;
+  line-height: 1.55;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#pages .page[data-text-position="top"]
+.storyland-full-overlay-text {
+  top: 5%;
+}
+
+#pages .page[data-text-position="center"]
+.storyland-full-overlay-text {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#pages .page[data-text-position="bottom"]
+.storyland-full-overlay-text {
+  bottom: 5%;
+}
+
+#pages .page[data-full-image="true"]
+.story-image-preview {
+  display: none !important;
+}
+
+#pages .page[data-full-image="true"]
+.storybook-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ============================================================
+   BUTTON SAFETY
+   ============================================================ */
+
+button:not(:disabled) {
+  pointer-events: auto;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+footer {
+  padding: 24px;
+  text-align: center;
+  background: #f0e2fb;
+  color: #7b52a7;
+}
+
+footer p {
+  font-size: 12px;
+}
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+
+@keyframes floatCloud {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — TABLET
+   ============================================================ */
+
+@media (max-width: 1250px) {
+  main {
+    grid-template-columns: 1fr;
+    max-width: 960px;
+  }
+}
+
+@media (max-width: 800px) {
+  main {
+    padding: 0 15px;
+  }
+
+  .panel,
+  .workspace {
+    padding: 19px;
+  }
+
+  .premium-cover-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-cover-visual {
+    margin: auto;
+  }
+
+  .storybook-settings {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE
+   ============================================================ */
+
 @media (max-width: 768px) {
   #pages.storyland-single-page-mode {
     width: 100% !important;
@@ -1852,340 +2428,209 @@ footer p { font-size: 12px; }
   }
 }
 
-/* STORYLAND V19.5 — IDEA ILUSTRASI BM */
-
-.storyland-idea-malay {
-  white-space: pre-wrap;
-  line-height: 1.8;
-  color: #7950a6;
-  font-size: 16px;
-}
-
-#pages details > summary {
-  cursor: pointer;
-  font-weight: 700;
-}
-
-#pages details[open] {
-  padding: 12px;
-  border-radius: 12px;
-  background: #f7edff;
-}
-
-/* =====================================================
-   STORYLAND AI V19.6
-   SAIZ ILUSTRASI SERAGAM — SEMUA HALAMAN
-   ===================================================== */
-
-:root {
-  --story-image-ratio: 3 / 4;
-}
-
-/* Bekas gambar setiap halaman */
-#pages .page .story-image-preview {
-  width: 100% !important;
-  aspect-ratio: var(--story-image-ratio) !important;
-  height: auto !important;
-  max-width: 100%;
-  overflow: hidden;
-  border-radius: 14px;
-  position: relative;
-  box-sizing: border-box;
-}
-
-/* Gambar sebenar */
-#pages .page .story-image-preview img {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-  position: absolute;
-  inset: 0;
-  object-fit: cover !important;
-  object-position: center;
-  transform: none !important;
-  max-width: none !important;
-}
-
-/* Placeholder sebelum ada gambar */
-#pages .page .story-image-preview
-.illustration-empty {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background: #f7f0ff;
-  color: #8965b5;
-}
-
-/* Elakkan ruang gambar menjadi tidak sekata */
-#pages .page .story-illustration {
-  min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* ==========================================
-   STORYLAND AI V20
-   FULL PAGE IMAGE + TEXT OVERLAY
-   ========================================== */
-
-/* Layout biasa: canvas disembunyikan */
-#pages .page .storyland-page-canvas {
-  display: none;
-}
-
-/* Paparan gambar penuh */
-#pages .page[data-full-image="true"]
-.storyland-page-canvas {
-  display: block !important;
-  position: relative;
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  border-radius: 18px;
-  background: #f4ebff;
-}
-
-/* Gambar memenuhi keseluruhan canvas */
-#pages .page[data-full-image="true"]
-.storyland-full-image-display {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-#pages .page[data-full-image="true"]
-.storyland-full-image-photo {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-/* Placeholder */
-.storyland-full-image-placeholder {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  background: #f2e7ff;
-  color: #7957a1;
-}
-
-/* Teks di atas gambar */
-#pages .page[data-full-image="true"]
-.storyland-full-overlay-text {
-  position: absolute;
-  z-index: 2;
-  left: 6%;
-  right: 6%;
-  padding: 18px 22px;
-  background: rgba(255, 255, 255, 0.78);
-  border-radius: 14px;
-  color: #33224e;
-  font-family: var(--book-font, "Nunito", sans-serif);
-  font-size: var(--book-font-size, 18px);
-  font-weight: 700;
-  line-height: 1.55;
-  text-align: center;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-/* Posisi teks atas */
-#pages .page[data-text-position="top"]
-.storyland-full-overlay-text {
-  top: 5%;
-}
-
-/* Posisi teks tengah */
-#pages .page[data-text-position="center"]
-.storyland-full-overlay-text {
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-/* Posisi teks bawah */
-#pages .page[data-text-position="bottom"]
-.storyland-full-overlay-text {
-  bottom: 5%;
-}
-
-/* Sembunyikan preview gambar asal dalam mod penuh.
-   Kekalkan AI Image Studio, Upload dan History. */
-#pages .page[data-full-image="true"]
-.story-image-preview {
-  display: none !important;
-}
-
-/* Ruang editor untuk mod penuh */
-#pages .page[data-full-image="true"]
-.storybook-page-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Responsif */
 @media (max-width: 600px) {
+  main {
+    display: block;
+    padding: 0 12px;
+  }
+
+  .panel,
+  .workspace {
+    padding: 15px;
+    margin-bottom: 16px;
+  }
+
+  .hero {
+    min-height: 290px;
+  }
+
+  .hero h1 {
+    font-size: 30px;
+  }
+
+  .fantasy-world {
+    height: 100px;
+  }
+
+  .castle {
+    font-size: 85px;
+  }
+
+  .rainbow {
+    font-size: 45px;
+  }
+
+  .unicorn {
+    font-size: 44px;
+  }
+
+  .dragon {
+    font-size: 35px;
+  }
+
+  .hero-cloud {
+    font-size: 42px;
+  }
+
+  .three {
+    column-gap: 6px;
+  }
+
+  .three label {
+    font-size: 9px;
+  }
+
+  .three select {
+    padding-left: 6px;
+    padding-right: 18px;
+    font-size: 10px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .dashboard-actions {
+    flex-direction: column;
+  }
+
+  .dashboard-actions button {
+    width: 100%;
+  }
+
+  .storybook-settings,
+  .cover-designer-controls {
+    grid-template-columns: 1fr;
+  }
+
+  #pages.storybook-pages {
+    grid-template-columns: 1fr;
+    padding: 8px;
+  }
+
+  .page[data-layout="side"]
+  .storybook-page-body {
+    grid-template-columns: 1fr;
+  }
+
+  .page[data-layout="side"]
+  .storybook-image-area {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .page[data-layout="side"]
+  .storybook-text-box {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .book-backup-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .book-backup-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .draft-recovery-actions,
+  .storyland-conflict-actions {
+    flex-direction: column;
+  }
+
+  .history-counter {
+    width: 100%;
+    margin: 0;
+    text-align: center;
+  }
+
+  .pdf-export-controls,
+  .pdf-export-controls label,
+  .pdf-export-controls select,
+  .pdf-export-button {
+    width: 100%;
+  }
+
+  .storybook-navigation button {
+    padding: 9px;
+    font-size: 11px;
+  }
+
+  .drag-tool-row {
+    gap: 5px;
+  }
+
+  .layout-choice-button {
+    font-size: 10px;
+  }
+
+  .cover-template-grid {
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .storyland-profile-dialog {
+    padding: 18px;
+  }
+
+  .storyland-profile-button {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+
   #pages .page[data-full-image="true"]
   .storyland-full-overlay-text {
     left: 4%;
     right: 4%;
     padding: 10px 12px;
-    font-size: clamp(14px, 3.5vw, 22px);
+    font-size:
+      clamp(
+        14px,
+        3.5vw,
+        22px
+      );
   }
 }
-/* ==========================================
-   FIX — MUAT SEMULA LIBRARY CLICKABLE
-   ========================================== */
 
-.library-heading {
-  position: relative;
-  z-index: 50;
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+  }
 }
 
-#refresh {
-  position: relative;
-  z-index: 100;
-  pointer-events: auto !important;
-  cursor: pointer !important;
-}/* ==========================================
-   DASHBOARD COVER IMAGE FIX
-   ========================================== */
+/* ============================================================
+   PRINT
+   ============================================================ */
 
-.dashboard-cover {
-  position: relative;
-  overflow: hidden;
-}
-
-.dashboard-cover > img {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  min-width: 100% !important;
-  min-height: 100% !important;
-  object-fit: cover !important;
-  object-position: center !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* =========================================================
-   HIDE IDEA ILUSTRASI BAHASA MELAYU
-   ========================================================= */
-
-details:has(.storyland-idea-malay) {
-  display: none !important;
-}
-button:not(:disabled) {
-  pointer-events: auto;
-}
-
-button {
-  cursor: pointer;
-}
-/* =========================================
-   FIX UMUR + BAHASA + BILANGAN MUKA SURAT
-   ========================================= */
-
-.three {
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-  align-items: start !important;
-}
-
-.three label {
-  display: grid !important;
-
-  /*
-    Baris pertama = tajuk
-    Baris kedua = dropdown
-  */
-  grid-template-rows: 30px 40px !important;
-
-  align-content: start !important;
-  margin-top: 15px !important;
-
-  min-width: 0 !important;
-  width: 100% !important;
-
-  line-height: 1.1 !important;
-  font-size: 11px !important;
-}
-
-.three select {
-  width: 100% !important;
-  height: 40px !important;
-
-  min-width: 0 !important;
-
-  margin-top: 0 !important;
-  padding: 7px 5px !important;
-
-  font-size: 11px !important;
-  box-sizing: border-box !important;
-}/* FIX KHAS — DROPDOWN BILANGAN MUKA SURAT */
-
-.three {
-  position: relative !important;
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-  align-items: start !important;
-}
-.three > label:last-of-type {
-  grid-column: 3 !important;
-  grid-row: 2 !important;
-
-  margin-top: 4px !important;
-  text-align: center !important;
-
-  font-size: 10px !important;
-  line-height: 1.15 !important;
-}
-/* =========================================
-   STORY GENERATOR — 3 PILIHAN SEJAJAR
-   ========================================= */
-
-.three {
-  display: grid !important;
-
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr)) !important;
-
-  gap: 10px !important;
-
-  align-items: start !important;
-}
-
-.three label {
-  margin-top: 15px !important;
-
-  min-width: 0 !important;
-
-  white-space: nowrap !important;
-
-  font-size: 10.5px !important;
-
-  line-height: 1.2 !important;
-}
-
-.three select {
-  width: 100% !important;
-
-  height: 40px !important;
-
-  margin-top: 7px !important;
-
-  padding: 7px 5px !important;
-
-  font-size: 11px !important;
+@media print {
+  .navbar,
+  .hero,
+  .panel,
+  .dashboard-wrapper,
+  .storybook-tools,
+  .storybook-navigation,
+  .visual-editor-tools,
+  .ai-image-studio,
+  .manual-upload-label,
+  .book-backup-panel,
+  .storyland-history-toolbar,
+  .draft-recovery-panel,
+  .storyland-conflict-panel,
+  .image-history-panel,
+  .cover-designer-panel,
+  .character-studio-panel,
+  .character-bible-panel,
+  .cover-gemini-idea,
+  footer {
+    display: none !important;
+  }
 }
