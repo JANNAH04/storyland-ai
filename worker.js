@@ -2633,6 +2633,100 @@ async function callGeminiJSON(
   }
 }
 
+function getCloudflareAiErrorInfo(data, status) {
+  const firstError =
+    data?.errors?.[0] ||
+    data?.error ||
+    null;
+
+  const rawMessage =
+    String(
+      firstError?.message ||
+      data?.message ||
+      ""
+    );
+
+  const code =
+    Number(
+      firstError?.code ||
+      firstError?.error_code ||
+      0
+    );
+
+  const dailyLimit =
+    status === 429 &&
+    (
+      code === 3036 ||
+      /daily free allocation/i.test(
+        rawMessage
+      ) ||
+      /10,000 neurons/i.test(
+        rawMessage
+      ) ||
+      /workers paid plan/i.test(
+        rawMessage
+      )
+    );
+
+  const outOfCapacity =
+    status === 429 &&
+    (
+      code === 3040 ||
+      /out of capacity/i.test(
+        rawMessage
+      )
+    );
+
+  if (dailyLimit) {
+    return {
+      type: "daily_limit",
+
+      code:
+        "AI_DAILY_LIMIT",
+
+      status:
+        429,
+
+      message:
+        "Kuota AI gambar Cloudflare untuk hari ini telah habis. Sistem akan cuba semula selepas kuota harian reset."
+    };
+  }
+
+  if (outOfCapacity) {
+    return {
+      type:
+        "capacity",
+
+      code:
+        "AI_CAPACITY",
+
+      status:
+        503,
+
+      message:
+        "Cloudflare AI sedang penuh. Cuba semula sebentar lagi."
+    };
+  }
+
+  return {
+    type:
+      "unknown",
+
+    code:
+      "AI_IMAGE_ERROR",
+
+    status:
+      status >= 400 &&
+      status <= 599
+        ? status
+        : 500,
+
+    message:
+      rawMessage ||
+      `Cloudflare Image HTTP ${status}`
+  };
+}
+
 async function generateAutoStoryImage(
   env,
   userId,
@@ -2738,19 +2832,33 @@ async function generateAutoStoryImage(
     await response.json();
 
   if (
-    !response.ok ||
-    data.success === false
-  ) {
-    console.error(
-      "[Auto Story Image]",
-      data
+  !response.ok ||
+  data.success === false
+) {
+  console.error(
+    "[Auto Story Image]",
+    data
+  );
+
+  const aiError =
+    getCloudflareAiErrorInfo(
+      data,
+      response.status
     );
 
-    throw new Error(
-      data?.errors?.[0]?.message ||
-      `Cloudflare Image HTTP ${response.status}`
+  const error =
+    new Error(
+      aiError.message
     );
-  }
+
+  error.code =
+    aiError.code;
+
+  error.status =
+    aiError.status;
+
+  throw error;
+}
 
   const base64 =
     data?.result?.image;
@@ -4263,27 +4371,35 @@ if (coverMigrated) {
       await response.json();
 
     if (
-      !response.ok ||
-      data.success === false
-    ) {
-      console.error(
-        "[Cloudflare Image]",
-        data
-      );
+  !response.ok ||
+  data.success === false
+) {
+  console.error(
+    "[Cloudflare Image]",
+    data
+  );
 
-      return json(
-        {
-          error:
-            data
-              ?.errors
-              ?.[0]
-              ?.message ||
+  const aiError =
+    getCloudflareAiErrorInfo(
+      data,
+      response.status
+    );
 
-            `Cloudflare HTTP ${response.status}`
-        },
-        response.status
-      );
-    }
+  return json(
+    {
+      error:
+        aiError.message,
+
+      code:
+        aiError.code,
+
+      retryAfterReset:
+        aiError.code ===
+          "AI_DAILY_LIMIT"
+    },
+    aiError.status
+  );
+}
 
     const base64 =
       data?.result?.image;

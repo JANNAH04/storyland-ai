@@ -471,13 +471,47 @@ STRICT VISUAL ACCURACY:
       success++;
 
     } catch (error) {
-      failed++;
+  failed++;
 
-      console.error(
-        `[Auto Image ${target}]`,
-        error
+  console.error(
+    `[Auto Image ${target}]`,
+    error
+  );
+
+  const messageText =
+    String(
+      error?.message ||
+      ""
+    );
+
+  const dailyLimit =
+    error?.code ===
+      "AI_DAILY_LIMIT" ||
+
+    /kuota ai gambar cloudflare/i
+      .test(
+        messageText
+      ) ||
+
+    /daily free allocation/i
+      .test(
+        messageText
+      ) ||
+
+    /10,000 neurons/i
+      .test(
+        messageText
       );
-    }
+
+  if (dailyLimit) {
+    message(
+      "⚠️ Kuota AI gambar hari ini telah habis. " +
+      "Auto-generate dihentikan dan akan boleh disambung selepas kuota reset."
+    );
+
+    break;
+  }
+}
   }
 
   /*
@@ -490,14 +524,15 @@ STRICT VISUAL ACCURACY:
     );
 
   if (failed) {
-    message(
-      `⚠️ ${success} gambar berjaya dijana, ${failed} gagal.`
-    );
-  } else {
-    message(
-      `✅ Semua ${success} gambar yang belum ada berjaya dijana.`
-    );
-  }
+  message(
+    `⚠️ ${success} gambar berjaya dijana. ` +
+    `${failed} belum siap dan akan dicuba semula apabila AI tersedia.`
+  );
+} else {
+  message(
+    `✅ Semua ${success} gambar yang belum ada berjaya dijana.`
+  );
+}
 
   /*
     Refresh thumbnail library juga
@@ -536,6 +571,15 @@ async function openBook(id) {
         'Server tidak memulangkan ID buku.'
       );
     }
+
+    /*
+  Auto jana cover/page yang masih kosong.
+  Gambar yang sudah ada tidak disentuh.
+*/
+book =
+  await autoGenerateMissingImages(
+    book
+  );
 
     const story = normalizeStory(book.pages);
 
