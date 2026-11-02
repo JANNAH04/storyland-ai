@@ -2654,9 +2654,10 @@ function getCloudflareAiErrorInfo(data, status) {
     );
 
   const dailyLimit =
-    status === 429 &&
-    (
-      code === 3036 ||
+  status === 429 &&
+  (
+    code === 3036 ||
+    code === 4006 ||
       /daily free allocation/i.test(
         rawMessage
       ) ||
@@ -3001,45 +3002,6 @@ async function generateStory(
     );
   }
 
-  /*
-    Cover + semua halaman.
-    Contoh 20 halaman = 21 gambar.
-  */
-  const quota =
-    await assertImageQuota(
-      env,
-      user.id
-    );
-
-  const requiredImages =
-    pageCount + 1;
-
-  if (
-    !quota.allowed ||
-    quota.remaining <
-      requiredImages
-  ) {
-    return json(
-      {
-        error:
-          `Kuota gambar tidak mencukupi. Buku ini memerlukan ${requiredImages} gambar tetapi baki hari ini hanya ${quota.remaining}.`,
-
-        used:
-          quota.used,
-
-        limit:
-          quota.limit,
-
-        remaining:
-          quota.remaining,
-
-        required:
-          requiredImages
-      },
-      429
-    );
-  }
-
   const prompt = `
 You are a professional children's book author.
 
@@ -3285,212 +3247,9 @@ Return:
 
       .run();
 
-    const imageErrors =
-      [];
-
-    /*
-      =======================================
-      1. AUTO GENERATE COVER
-      =======================================
-    */
-    try {
-      story.coverImageUrl =
-        await generateAutoStoryImage(
-          env,
-          user.id,
-          id,
-
-          story.coverIllustrationIdea ||
-          `Children's book cover for "${story.title}".`,
-
-          "cover"
-        );
-
-    } catch (error) {
-      console.error(
-        "[Auto Cover]",
-        error
-      );
-
-      imageErrors.push({
-        target:
-          "cover",
-
-        error:
-          error?.message ||
-          "Gagal menjana cover."
-      });
-    }
-
-    /*
-      Simpan cover ke D1.
-    */
-    await env.DB
-      .prepare(`
-        UPDATE books
-
-        SET
-          pages = ?,
-          updated_at = ?,
-          revision =
-            revision + 1
-
-        WHERE
-          id = ?
-
-          AND
-          owner_id = ?
-      `)
-
-      .bind(
-        JSON.stringify(
-          story
-        ),
-
-        new Date()
-          .toISOString(),
-
-        id,
-        user.id
-      )
-
-      .run();
-
-    /*
-      =======================================
-      2. AUTO GENERATE SETIAP HALAMAN
-      =======================================
-
-      Sequential.
-      Jangan Promise.all supaya lebih stabil.
-    */
-    for (
-      let i = 0;
-      i < story.pages.length;
-      i++
-    ) {
-      const page =
-        story.pages[i];
-
-      try {
-        page.imageUrl =
-  await generateAutoStoryImage(
-    env,
-    user.id,
-    id,
-
-    `
-STORY TEXT FOR THIS PAGE:
-${page.text}
-
-ILLUSTRATION DESCRIPTION:
-${page.illustrationPrompt}
-
-STRICT VISUAL ACCURACY:
-- The illustration MUST match the story text above.
-- The story text is the main source of truth.
-- Preserve the exact named characters mentioned in the story.
-- Preserve the exact animals mentioned in the story.
-- Preserve the correct setting, objects and actions.
-- Never replace one animal species with another animal.
-- Never invent a camel, horse, elephant or other major animal unless explicitly mentioned.
-- Never replace a rabbit with another animal.
-- Do not invent major characters that are not mentioned.
-- If the illustration description conflicts with the story text, follow the story text.
-- Show the exact interaction happening in this page.
-- If characters are talking, show natural eye contact, gestures, expressions and reactions.
-- Do not use speech bubbles.
-- Do not include written text in the image.
-    `,
-
-    "page"
-  );
-
-      } catch (error) {
-        console.error(
-          `[Auto Page ${page.number}]`,
-          error
-        );
-
-        imageErrors.push({
-          target:
-            String(
-              page.number
-            ),
-
-          error:
-            error?.message ||
-            "Gagal menjana gambar halaman."
-        });
-      }
-
-      /*
-        Simpan progress setiap gambar.
-        Kalau request terputus,
-        gambar yang sudah siap tak hilang.
-      */
-      await env.DB
-        .prepare(`
-          UPDATE books
-
-          SET
-            pages = ?,
-            updated_at = ?,
-            revision =
-              revision + 1
-
-          WHERE
-            id = ?
-
-            AND
-            owner_id = ?
-        `)
-
-        .bind(
-          JSON.stringify(
-            story
-          ),
-
-          new Date()
-            .toISOString(),
-
-          id,
-          user.id
-        )
-
-        .run();
-    }
-
-    const generatedImageCount =
-      (
-        story.coverImageUrl
-          ? 1
-          : 0
-      ) +
-      story.pages.filter(
-        page =>
-          Boolean(
-            page.imageUrl
-          )
-      ).length;
-
     return json({
       id,
-      ...story,
-
-      autoImages: {
-        requested:
-          requiredImages,
-
-        generated:
-          generatedImageCount,
-
-        failed:
-          imageErrors.length,
-
-        errors:
-          imageErrors
-      }
+      ...story
     });
 
   } catch (error) {
