@@ -6515,66 +6515,111 @@ async function handleApi(
   const path =
     url.pathname;
 
-    if (
-  path === "/api/debug/cloudflare-account" &&
-  request.method === "GET"
-) {
-  return json({
-    accountId:
-      env.CLOUDFLARE_ACCOUNT_ID ||
-      null,
 
-    textModel:
-      env.CLOUDFLARE_TEXT_MODEL ||
-      null,
+  /* ==========================================================
+     DEBUG — CLOUDFLARE ACCOUNT
+     ========================================================== */
 
-    imageModel:
-      env.CLOUDFLARE_IMAGE_MODEL ||
-      null
-  });
-}
+  if (
+    path ===
+      "/api/debug/cloudflare-account" &&
 
-if (
-  path === "/api/debug/test-image-ai" &&
-  request.method === "GET"
-) {
-  try {
-    const model =
-      env.CLOUDFLARE_IMAGE_MODEL ||
-      "@cf/black-forest-labs/flux-1-schnell";
+    request.method ===
+      "GET"
+  ) {
+    return json({
+      accountId:
+        env.CLOUDFLARE_ACCOUNT_ID ||
+        null,
 
-    const response =
-      await fetch(
-        "https://api.cloudflare.com/client/v4/accounts/" +
-        encodeURIComponent(
-          env.CLOUDFLARE_ACCOUNT_ID
-        ) +
-        "/ai/run/" +
-        model,
-        {
-          method: "POST",
+      textModel:
+        env.CLOUDFLARE_TEXT_MODEL ||
+        null,
 
-          headers: {
-            Authorization:
-              `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+      imageModel:
+        env.CLOUDFLARE_IMAGE_MODEL ||
+        null
+    });
+  }
 
-            "Content-Type":
-              "application/json"
+
+  /* ==========================================================
+     DEBUG — TEST CLOUDFLARE IMAGE AI
+     ========================================================== */
+
+  if (
+    path ===
+      "/api/debug/test-image-ai" &&
+
+    request.method ===
+      "GET"
+  ) {
+    try {
+      if (
+        !env.CLOUDFLARE_ACCOUNT_ID
+      ) {
+        return json(
+          {
+            ok: false,
+
+            error:
+              "CLOUDFLARE_ACCOUNT_ID belum dikonfigurasi."
           },
+          503
+        );
+      }
 
-          body:
-            JSON.stringify({
-              prompt:
-                "A simple cute white rabbit sitting on grass, children's book illustration, no text."
-            })
-        }
-      );
+      if (
+        !env.CLOUDFLARE_API_TOKEN
+      ) {
+        return json(
+          {
+            ok: false,
 
-    const data =
-      await response.json();
+            error:
+              "CLOUDFLARE_API_TOKEN belum dikonfigurasi."
+          },
+          503
+        );
+      }
 
-    return json(
-      {
+      const model =
+        env.CLOUDFLARE_IMAGE_MODEL ||
+        "@cf/black-forest-labs/flux-1-schnell";
+
+      const response =
+        await fetch(
+          "https://api.cloudflare.com/client/v4/accounts/" +
+          encodeURIComponent(
+            env.CLOUDFLARE_ACCOUNT_ID
+          ) +
+          "/ai/run/" +
+          model,
+
+          {
+            method:
+              "POST",
+
+            headers: {
+              Authorization:
+                `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+
+              "Content-Type":
+                "application/json"
+            },
+
+            body:
+              JSON.stringify({
+                prompt:
+                  "A simple cute white rabbit sitting on green grass, children's picture book illustration, no text, no watermark."
+              })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      return json({
         ok:
           response.ok,
 
@@ -6587,32 +6632,46 @@ if (
         model,
 
         success:
-          data?.success ?? null,
+          data?.success ??
+          null,
 
         errors:
-          data?.errors ?? null,
+          data?.errors ??
+          null,
+
+        messages:
+          data?.messages ??
+          null,
 
         hasImage:
           Boolean(
             data?.result?.image
           )
-      },
-      200
-    );
+      });
 
-  } catch (error) {
-    return json(
-      {
-        ok: false,
+    } catch (error) {
+      console.error(
+        "[Debug Image AI]",
+        error
+      );
 
-        error:
-          error?.message ||
-          String(error)
-      },
-      500
-    );
+      return json(
+        {
+          ok: false,
+
+          error:
+            error?.message ||
+            String(error)
+        },
+        500
+      );
+    }
   }
-}
+
+
+  /* ==========================================================
+     SAME ORIGIN CHECK
+     ========================================================== */
 
   if (
     !sameOriginAllowed(
@@ -6628,25 +6687,14 @@ if (
     );
   }
 
-  if (
-  path === "/api/debug/cloudflare-account" &&
-  request.method === "GET"
-) {
-  return json({
-    accountId:
-      env.CLOUDFLARE_ACCOUNT_ID || null,
 
-    textModel:
-      env.CLOUDFLARE_TEXT_MODEL || null,
-
-    imageModel:
-      env.CLOUDFLARE_IMAGE_MODEL || null
-  });
-}
+  /* ==========================================================
+     OPTIONS
+     ========================================================== */
 
   if (
     request.method ===
-    "OPTIONS"
+      "OPTIONS"
   ) {
     return new Response(
       null,
