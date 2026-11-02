@@ -352,6 +352,161 @@ async function loadLibrary() {
 
 window.StorylandReloadLibrary = loadLibrary;
 
+async function autoGenerateMissingImages(book) {
+  if (!book?.id) return book;
+
+  const story =
+    normalizeStory(book.pages);
+
+  const missingTargets = [];
+
+  /*
+    Cover kosong
+  */
+  if (!story.coverImageUrl) {
+    missingTargets.push("cover");
+  }
+
+  /*
+    Page yang belum ada gambar sahaja
+  */
+  for (const page of story.pages || []) {
+    if (!page.imageUrl) {
+      missingTargets.push(
+        String(page.number)
+      );
+    }
+  }
+
+  /*
+    Semua gambar sudah ada
+  */
+  if (!missingTargets.length) {
+    return book;
+  }
+
+  console.log(
+    "[Auto Missing Images]",
+    missingTargets
+  );
+
+  message(
+    `🖼️ Menjana ${missingTargets.length} gambar yang belum siap...`
+  );
+
+  let success = 0;
+  let failed = 0;
+
+  for (
+    let i = 0;
+    i < missingTargets.length;
+    i++
+  ) {
+    const target =
+      missingTargets[i];
+
+    try {
+      message(
+        `🖼️ Menjana gambar ${i + 1}/${missingTargets.length}...`
+      );
+
+      const page =
+        target === "cover"
+          ? null
+          : story.pages.find(
+              item =>
+                Number(item.number) ===
+                Number(target)
+            );
+
+      let customPrompt = "";
+
+      if (target !== "cover" && page) {
+        customPrompt = `
+STORY TEXT FOR THIS PAGE:
+${page.text || ""}
+
+ILLUSTRATION DESCRIPTION:
+${page.illustrationPrompt || ""}
+
+STRICT VISUAL ACCURACY:
+- The image MUST match the story text.
+- The story text is the main source of truth.
+- Preserve exact named characters.
+- Preserve exact animal species.
+- Preserve the correct setting, objects and actions.
+- Never replace one animal with another species.
+- Never invent major animals not mentioned.
+- If the story says rabbit, show a rabbit.
+- If the story says Amin, show Amin.
+- Do not invent a camel unless the story explicitly mentions a camel.
+- If characters are talking, show natural expressions, eye contact, gestures and reactions.
+- Do not use speech bubbles.
+- No written text.
+        `.trim();
+      }
+
+      await api(
+        `/api/books/${encodeURIComponent(book.id)}/generate-image`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              target,
+              style:
+                page?.theme ||
+                "fantasy",
+
+              customPrompt
+            })
+        }
+      );
+
+      success++;
+
+    } catch (error) {
+      failed++;
+
+      console.error(
+        `[Auto Image ${target}]`,
+        error
+      );
+    }
+  }
+
+  /*
+    Ambil semula versi terbaru dari server
+    kerana imageUrl + revision sudah berubah.
+  */
+  const refreshed =
+    await api(
+      `/api/books/${encodeURIComponent(book.id)}`
+    );
+
+  if (failed) {
+    message(
+      `⚠️ ${success} gambar berjaya dijana, ${failed} gagal.`
+    );
+  } else {
+    message(
+      `✅ Semua ${success} gambar yang belum ada berjaya dijana.`
+    );
+  }
+
+  /*
+    Refresh thumbnail library juga
+  */
+  await loadLibrary();
+
+  return refreshed;
+}
+
 /* ======================================================
    OPEN BOOK
    ====================================================== */
@@ -372,9 +527,9 @@ async function openBook(id) {
       }
     }
 
-    const book = await api(
-      `/api/books/${encodeURIComponent(id)}`
-    );
+    let book = await api(
+    `/api/books/${encodeURIComponent(id)}`
+  );
 
     if (!book || !book.id) {
       throw new Error(
