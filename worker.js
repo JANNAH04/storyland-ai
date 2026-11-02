@@ -6534,6 +6534,86 @@ async function handleApi(
   });
 }
 
+if (
+  path === "/api/debug/test-image-ai" &&
+  request.method === "GET"
+) {
+  try {
+    const model =
+      env.CLOUDFLARE_IMAGE_MODEL ||
+      "@cf/black-forest-labs/flux-1-schnell";
+
+    const response =
+      await fetch(
+        "https://api.cloudflare.com/client/v4/accounts/" +
+        encodeURIComponent(
+          env.CLOUDFLARE_ACCOUNT_ID
+        ) +
+        "/ai/run/" +
+        model,
+        {
+          method: "POST",
+
+          headers: {
+            Authorization:
+              `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              prompt:
+                "A simple cute white rabbit sitting on grass, children's book illustration, no text."
+            })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    return json(
+      {
+        ok:
+          response.ok,
+
+        httpStatus:
+          response.status,
+
+        accountId:
+          env.CLOUDFLARE_ACCOUNT_ID,
+
+        model,
+
+        success:
+          data?.success ?? null,
+
+        errors:
+          data?.errors ?? null,
+
+        hasImage:
+          Boolean(
+            data?.result?.image
+          )
+      },
+      200
+    );
+
+  } catch (error) {
+    return json(
+      {
+        ok: false,
+
+        error:
+          error?.message ||
+          String(error)
+      },
+      500
+    );
+  }
+}
+
   if (
     !sameOriginAllowed(
       request
