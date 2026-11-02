@@ -6530,6 +6530,22 @@ async function handleApi(
   }
 
   if (
+  path === "/api/debug/cloudflare-account" &&
+  request.method === "GET"
+) {
+  return json({
+    accountId:
+      env.CLOUDFLARE_ACCOUNT_ID || null,
+
+    textModel:
+      env.CLOUDFLARE_TEXT_MODEL || null,
+
+    imageModel:
+      env.CLOUDFLARE_IMAGE_MODEL || null
+  });
+}
+
+  if (
     request.method ===
     "OPTIONS"
   ) {
